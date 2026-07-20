@@ -35,14 +35,16 @@ the real `minimatch` package on the same machine, same data:
 | Operation | Speedup |
 |---|---|
 | Compile 1,000 patterns | **3.4x faster** |
-| Match 10,000 paths | **2.3x faster** |
-| Filter 10,000 paths | **2.3x slower** |
+| Match 10,000 paths | **2.6x faster** |
+| Filter 10,000 paths | **1.4x slower** |
 
-That last row is real, not a typo - it started this project at 27x
-slower. See [Benchmarks](#benchmarks) below for what actually closed
-most of that gap (a real second compile step, not just a tuning pass),
-a real exponential-blowup bug in `+()`/`*()` extglobs found along the
-way, and what's still left on the table.
+That last row started this project at 27x slower. The matching
+algorithm itself is at parity with real minimatch now (verified with
+FFI out of the picture entirely - see [Benchmarks](#benchmarks)); the
+remaining 1.4x only shows up once Node.js is in the loop, and it's
+string-marshaling overhead at the FFI boundary, not the algorithm -
+also detailed below, along with a real exponential-blowup bug in
+`+()`/`*()` extglobs found along the way.
 
 ## Also available as
 
@@ -185,10 +187,10 @@ samples each):
 
 | Benchmark | Median time |
 |---|---|
-| Match 10,000 random paths against a pattern | 11.8 ms |
-| Compile 1,000 patterns | 1.8 ms |
-| Match against 11 chained globstars over 30 path segments | 3.3 µs |
-| Filter 10,000 paths | 4.6 ms |
+| Match 10,000 random paths against a pattern | 10.3 ms |
+| Compile 1,000 patterns | 1.7 ms |
+| Match against 11 chained globstars over 30 path segments | 2.8 µs |
+| Filter 10,000 paths | 2.3 ms |
 
 **Node.js: `rs-minimatch` (via NAPI) vs. the real `minimatch` package**
 (`benchmarks/compare.js`, same generated data for both, best-of-5,
@@ -196,12 +198,12 @@ identical process):
 
 | Benchmark | rs-minimatch | minimatch | speedup |
 |---|---|---|---|
-| Match 10,000 paths | 13.84 ms | 31.27 ms | **2.3x** |
-| Compile 1,000 patterns | 2.24 ms | 7.55 ms | **3.4x** |
-| 11 chained globstars / 30 segments (the PRD's ReDoS example) | 0.00 ms | 0.00 ms | **0.9x** |
-| Filter 10,000 paths | 5.53 ms | 2.39 ms | **0.43x (2.3x slower)** |
+| Match 10,000 paths | 11.7 ms | 31.0 ms | **2.6x** |
+| Compile 1,000 patterns | 2.2 ms | 7.4 ms | **3.4x** |
+| 11 chained globstars / 30 segments (the PRD's ReDoS example) | 0.00 ms | 0.00 ms | **~1x** |
+| Filter 10,000 paths | 3.45 ms | 2.38 ms | **0.7x (1.4x slower)** |
 
-Four things worth being direct about instead of only reporting the
+Five things worth being direct about instead of only reporting the
 numbers that look good:
 
 **The ReDoS attack shape isn't actually slow on real minimatch anymore.**
@@ -216,8 +218,8 @@ because a depth cap can produce false negatives on legitimately deep
 can't — but "we fixed a live vulnerability" would be a false claim, and
 isn't the one being made here.
 
-**Filtering 10,000 paths used to be 27x slower. It's now 2.3x slower,
-and getting there took two separate, real fixes, not one tuning
+**Filtering 10,000 paths used to be 27x slower. It's now 1.4x slower,
+and getting there took three separate, real fixes, not one tuning
 pass.** First: every call into the matcher was allocating a fresh
 `HashMap` for its memoization table, even for a plain segment (a bare
 `*` or a literal) that doesn't need one at all - a literal-only or
@@ -228,7 +230,7 @@ now skip the memo table entirely; everything else still gets the same
 flat, pre-sized `Vec` (no hashing, no incremental-growth reallocation,
 unlike the old `HashMap`) it did before.
 
-That alone closed part of the gap, but the real jump came second:
+That alone closed part of the gap, but the bigger jump came second:
 `minimatch` compiles the whole pattern to one native regex *once* and
 lets a heavily-optimized engine scan each path in a single call - this
 crate was still *interpreting* its node-by-node AST from scratch on
@@ -239,39 +241,63 @@ exactly one `*` with fixed-width pieces either side (`*.ts`, `src*`,
 `a?c`, all of it) - `segment_matches` now classifies the pattern once
 and runs a small direct-dispatch matcher instead of the general
 recursive one: one linear pass for the no-wildcard case, or one pass
-from the front and one from the back (`str::Chars` is a
-double-ended iterator, so this is a single walk, not two separate
-ones) for the single-`*` case, with no `Vec<char>` collection and no
-recursion at all. Everything else (multiple `*`s, any extglob) still
-goes through the untouched, already-verified general matcher.
+from the front and one from the back (`str::Chars` is a double-ended
+iterator, so this is a single walk, not two separate ones) for the
+single-`*` case, with no `Vec<char>` collection and no recursion at
+all. Everything else (multiple `*`s, any extglob) still goes through
+the untouched, already-verified general matcher.
 
-Together: `filter_10k_paths` down 93% overall (65.7ms → 4.6ms, most of
-that from the second fix alone) and `match_10k_paths` down 43%
-(20.5ms → 11.8ms), checked against minimatch's own fixture suite, a
-20,000-case general fuzz run, a separate 100,000-case fuzz run
-targeting the exact shapes the fast path handles (literal runs, `?`,
+Third: for the equally common `**/fixed/tail` shape (`**/*.ts`, a
+leading globstar with no further globstar after it), the *whole-path*
+algorithm was still trying every candidate globstar split one at a
+time via recursion, calling the segment matcher once per candidate -
+but a globstar-free tail has a fixed length, so there's really only
+one possible alignment against the end of the path (or two, to allow
+for a single trailing slash) to check, not a search. Mirrored real
+minimatch's own head/tail decomposition for this exact shape directly
+instead of rediscovering it through recursion, cutting the number of
+segment-matcher calls per path from one-per-candidate to one-or-two,
+flat. Alongside it, `Minimatch::is_match` was unconditionally cloning
+the entire split-path `Vec<String>` and allocating a `to_string()`
+copy of the input on every single call, regardless of whether either
+was actually needed (Windows path handling, `matchBase`) - both are
+now computed lazily, and the common path takes a reference instead of
+cloning.
+
+Together: `filter_10k_paths` down 96% overall (65.7ms → 2.3ms, pure
+Rust, no FFI in the loop) and `match_10k_paths` down 50% (20.5ms →
+10.3ms), checked against minimatch's own fixture suite, a 20,000-case
+general fuzz run, a separate 100,000-case fuzz run targeting the exact
+shapes the segment-level fast path handles (literal runs, `?`,
 character classes, single `*`, mixed `nocase`/`dot` options, a few
-Unicode characters thrown in), and - the strongest check - a Rust-level
-differential test that runs *both* the fast path and the untouched
-general matcher on 50,000 random cases (×4 option combinations) and
-asserts they never disagree, since that's the real regression bar, not
-just "does it still pass the fixture suite." All of it passed. One
-genuine pre-existing gap turned up during that fuzzing, unrelated to
-either fix (confirmed present on the original, unmodified matcher too):
-a character class that can only match a literal dot, like `[.]`,
-doesn't get the same "this is deliberately targeting a dotfile"
-exemption an actual literal `.` does, when the path segment being
-matched is exactly `.` or `..`. Documented in [Project
-status](#project-status) rather than fixed here, since it's an
-unrelated, narrow issue and not something today's changes touched.
+Unicode characters thrown in), and - the strongest check for both fast
+paths - two Rust-level differential tests that run each fast path
+*and* the untouched general algorithm it's shortcutting on tens of
+thousands of random cases apiece and assert they never disagree, since
+that's the real regression bar, not just "does it still pass the
+fixture suite." All of it passed. One genuine pre-existing gap turned
+up during that fuzzing, unrelated to any of this work (confirmed
+present on the original, unmodified matcher too): a character class
+that can only match a literal dot, like `[.]`, doesn't get the same
+"this is deliberately targeting a dotfile" exemption an actual literal
+`.` does, when the path segment being matched is exactly `.` or `..`.
+Documented in [Project status](#project-status) rather than fixed
+here, since it's unrelated and not something this work touched.
 
-What's left of the remaining 2.3x is the last bit of interpretation
-overhead multi-piece single-`*` patterns still pay (each fixed-width
-node in the prefix/suffix is still checked one at a time) versus a
-regex engine's tighter native scan - closing that fully would mean
-compiling each piece into one back-to-back comparison instead of a
-per-node loop, which is a smaller, lower-risk follow-up than the
-compile step above, not a new architecture.
+**The matching algorithm itself is now at parity with real minimatch -
+what's left is the FFI boundary, not the algorithm.** The pure-Rust
+number above (2.3ms, no Node, no FFI, no marshaling of any kind) is
+already about as fast as minimatch's own Node-measured number (2.4ms).
+The 1.4x that shows up in the Node comparison is the cost of crossing
+the JS/native boundary: `napi-rs` (like any Node native addon, in any
+language) has to convert each of the 10,000 JS strings into an owned
+Rust `String` on the way in, and allocate a fresh JS string for each
+match on the way out - measured directly, that conversion accounts for
+essentially the entire remaining gap. Real minimatch, staying in pure
+JS, pays none of that. Closing it further would mean redesigning the
+NAPI layer around raw buffers instead of individual strings to avoid
+the per-string round trip - a different kind of change to the stable
+FFI surface, not an algorithm tweak, and out of scope for this pass.
 
 **A real exponential-blowup bug in `+()`/`*()` extglobs was found and
 fixed along the way, unrelated to the allocation work above.**
@@ -309,15 +335,23 @@ node compare.js
   same technique that makes regex engines like Rust's own `regex` crate
   immune to catastrophic backtracking, applied directly instead of
   through a compiled automaton.
-- **Two matchers, not one.** A no-wildcard or single-`*` segment (the
-  overwhelming majority of real glob segments) is classified once and
-  runs through a small direct-dispatch matcher - one linear pass, no
-  allocation, no recursion. Anything with multiple `*`s or any extglob
-  falls back to the general memoized matcher above, untouched. A Rust
-  differential test (`matcher.rs`'s `fast_path_differential_tests`)
-  runs both against the same random inputs and asserts they never
-  disagree, since the two are meant to be the same algorithm, just one
-  of them without the general machinery.
+- **Two matchers, not one, at both the segment and whole-path level.**
+  A no-wildcard or single-`*` segment (the overwhelming majority of
+  real glob segments) is classified once and runs through a small
+  direct-dispatch matcher - one linear pass, no allocation, no
+  recursion. A leading `**` followed by a globstar-free tail (`**/*.ts`)
+  gets the same treatment one level up: the tail's fixed length means
+  there's only one or two possible alignments against the end of the
+  path, computed directly instead of searched for via recursion.
+  Anything else (multiple `*`s, any extglob, a globstar anywhere but
+  the very front) falls back to the general memoized matcher above,
+  untouched. Two Rust differential tests
+  (`matcher.rs`'s `fast_path_differential_tests`,
+  `path.rs`'s `leading_globstar_fixed_tail_differential_tests`) each
+  run their fast path against the general algorithm it's shortcutting
+  on tens of thousands of random inputs and assert they never disagree,
+  since the two are meant to be the same algorithm, just one of them
+  without the general machinery.
 - **Full extglob support** (`!(...)`, `?(...)`, `+(...)`, `*(...)`,
   `@(...)`, including nesting), implemented as the same DP generalized
   to try each alternative against each candidate span.

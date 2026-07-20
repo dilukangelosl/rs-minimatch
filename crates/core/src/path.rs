@@ -75,6 +75,88 @@ pub fn basename(file_segments: &[String]) -> &str {
 }
 
 pub fn match_segments(pattern: &[Segment], file: &[String], opts: &Options, partial: bool) -> bool {
+    // The extremely common "**/fixed/tail" shape (`**/*.ts`, `**/foo/bar.js`
+    // - a leading globstar with no further globstar after it) has only one
+    // or two possible alignments at all (see `match_leading_globstar_fixed_tail`),
+    // so it's cheaper to compute those directly than to let the general
+    // recursive algorithm rediscover the same thing by trying every
+    // candidate globstar split. Every other shape (globstar in the middle,
+    // more than one globstar, no globstar at all) is untouched.
+    if !partial {
+        if let [Segment::GlobStar, tail @ ..] = pattern {
+            if !tail.is_empty() && !tail.iter().any(|s| matches!(s, Segment::GlobStar)) {
+                return match_leading_globstar_fixed_tail(tail, file, opts);
+            }
+        }
+    }
+    let mut memo = Memo::for_shape(pattern, pattern.len(), file.len());
+    match_at(pattern, file, 0, 0, opts, partial, &mut memo)
+}
+
+/// Fast path for `[GlobStar, tail...]` where `tail` has no globstar of its
+/// own: since `tail` has no globstar of its own, it must consume exactly
+/// `tail.len()` file segments ending at the very end of the path (or one
+/// short of the end, to allow for a single trailing slash) - there's only
+/// one or two possible alignments to check, never a search over many
+/// candidate globstar splits. Mirrors real minimatch's own head/tail
+/// decomposition for this exact shape (`#matchGlobstar`'s
+/// `tailStart`/`tailStart - 1`), including its own comment: "affordance for
+/// stuff like `a/**/*` matching `a/b/`" - a single trailing slash shifts
+/// the whole tail one segment earlier, which is the only other alignment
+/// that could ever legitimately succeed.
+fn match_leading_globstar_fixed_tail(tail: &[Segment], file: &[String], opts: &Options) -> bool {
+    let tail_len = tail.len();
+    if file.len() < tail_len {
+        return false;
+    }
+
+    let try_alignment = |tail_start: usize| -> bool {
+        for (i, seg_pattern) in tail.iter().enumerate() {
+            let fi = tail_start + i;
+            let seg = &file[fi];
+            let Segment::Pattern(nodes) = seg_pattern else {
+                unreachable!("tail is guaranteed globstar-free by the caller")
+            };
+            if traversal_blocked(seg, pattern::is_only_dots(nodes)) {
+                return false;
+            }
+            // Same rule as the general algorithm: a real pattern segment
+            // never consumes the empty artifact of a trailing slash itself
+            // - only the fallback alignment below (shifting the whole tail
+            // one segment earlier) is allowed to leave it dangling off the
+            // end unconsumed.
+            if !nodes.is_empty() && seg.is_empty() && fi == file.len() - 1 {
+                return false;
+            }
+            let dot_allowed = opts.dot || pattern::starts_with_literal_dot(nodes);
+            if !crate::matcher::segment_matches(nodes, seg, opts.nocase, dot_allowed) {
+                return false;
+            }
+        }
+        // Everything before the tail is free-floating "**" territory: any
+        // segments are fine except "." / ".." / hidden-without-dot, same
+        // rule the GlobStar arm's own consume step applies.
+        file[..tail_start].iter().all(|seg| seg != "." && seg != ".." && (opts.dot || !seg.starts_with('.')))
+    };
+
+    let primary_tail_start = file.len() - tail_len;
+    if try_alignment(primary_tail_start) {
+        return true;
+    }
+    if primary_tail_start >= 1 && file.last().is_some_and(|s| s.is_empty()) {
+        return try_alignment(primary_tail_start - 1);
+    }
+    false
+}
+
+/// Test-only: always takes the general recursive route, bypassing the
+/// `match_leading_globstar_fixed_tail` shortcut entirely regardless of
+/// shape. Used to prove that shortcut never *disagrees* with the general
+/// algorithm it's replacing - the real regression bar for a shortcut like
+/// this, independent of whether either one happens to be correct per real
+/// minimatch on any given case.
+#[cfg(test)]
+pub(crate) fn match_segments_general_only(pattern: &[Segment], file: &[String], opts: &Options, partial: bool) -> bool {
     let mut memo = Memo::for_shape(pattern, pattern.len(), file.len());
     match_at(pattern, file, 0, 0, opts, partial, &mut memo)
 }
@@ -224,5 +306,80 @@ fn match_at_uncached(pattern: &[Segment], file: &[String], pi: usize, fi: usize,
             }
             match_at(pattern, file, next_pi, next_fi, opts, partial, memo)
         }
+    }
+}
+
+#[cfg(test)]
+mod leading_globstar_fixed_tail_differential_tests {
+    use super::{compile_segments, match_segments, match_segments_general_only, split_path};
+    use crate::options::Options;
+
+    struct Rng(u32);
+    impl Rng {
+        fn next_u32(&mut self) -> u32 {
+            self.0 = self.0.wrapping_add(0x6d2b79f5);
+            let mut t = self.0;
+            t = (t ^ (t >> 15)).wrapping_mul(t | 1);
+            t ^= t.wrapping_add((t ^ (t >> 7)).wrapping_mul(t | 61));
+            t ^ (t >> 14)
+        }
+        fn pick<'a, T>(&mut self, items: &'a [T]) -> &'a T {
+            &items[(self.next_u32() as usize) % items.len()]
+        }
+        fn below(&mut self, n: usize) -> usize {
+            (self.next_u32() as usize) % n
+        }
+    }
+
+    fn random_path(rng: &mut Rng) -> String {
+        let segs = ["a", "b", ".foo", "c.ts", "d.js", ".."];
+        let n = 1 + rng.below(4);
+        let mut parts: Vec<&str> = (0..n).map(|_| *rng.pick(&segs)).collect();
+        if rng.below(4) == 0 {
+            parts.push(""); // trailing slash
+        }
+        parts.join("/")
+    }
+
+    fn random_globstar_tail_pattern(rng: &mut Rng) -> String {
+        let tail_pieces = ["*.ts", "*", "?.js", "[ab]*", "a", ".foo", "**"];
+        // Bias heavily toward exactly one leading globstar with a
+        // globstar-free tail - the shape the fast path actually targets -
+        // but occasionally include a second "**" so some generated
+        // patterns fall through to the general path too, as a sanity
+        // check that both routes still get exercised.
+        let n_tail = 1 + rng.below(3);
+        let mut parts = vec!["**".to_string()];
+        for _ in 0..n_tail {
+            parts.push((*rng.pick(&tail_pieces)).to_string());
+        }
+        parts.join("/")
+    }
+
+    #[test]
+    fn fast_path_never_disagrees_with_general_algorithm() {
+        let mut rng = Rng(0xFEED_FACE);
+        let mut checked = 0;
+        for _ in 0..20_000 {
+            let path = random_path(&mut rng);
+            let pattern_str = random_globstar_tail_pattern(&mut rng);
+            for nocase in [false, true] {
+                for dot in [false, true] {
+                    let opts = Options { nocase, dot, ..Options::default() };
+                    let pattern = compile_segments(&pattern_str, &opts);
+                    let file = split_path(&path, opts.preserve_multiple_slashes);
+                    for partial in [false, true] {
+                        let fast = match_segments(&pattern, &file, &opts, partial);
+                        let general = match_segments_general_only(&pattern, &file, &opts, partial);
+                        assert_eq!(
+                            fast, general,
+                            "disagreement on path={path:?} pattern={pattern_str:?} nocase={nocase} dot={dot} partial={partial}: fast={fast} general={general}"
+                        );
+                        checked += 1;
+                    }
+                }
+            }
+        }
+        assert!(checked > 0);
     }
 }

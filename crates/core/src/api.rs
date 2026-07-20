@@ -91,13 +91,23 @@ impl Minimatch {
             return true;
         }
 
-        let f = if self.options.is_windows() { file.replace('\\', "/") } else { file.to_string() };
+        // `to_string()`/basename were previously computed unconditionally
+        // on every call, even for the common cases (non-Windows, no
+        // match_base) that never need them - this function runs once per
+        // path in a `filter`/`match` call, so that overhead was a real,
+        // repeated cost, not a one-off.
+        let f: std::borrow::Cow<str> =
+            if self.options.is_windows() && file.contains('\\') { file.replace('\\', "/").into() } else { file.into() };
         let file_segments = path::split_path(&f, self.options.preserve_multiple_slashes);
-        let base = path::basename(&file_segments).to_string();
+        let mut base_segments: Option<[String; 1]> = None;
 
         for pat in &self.set {
-            let use_file = if self.options.match_base && pat.len() == 1 { vec![base.clone()] } else { file_segments.clone() };
-            if path::match_segments(pat, &use_file, &self.options, partial) {
+            let use_file: &[String] = if self.options.match_base && pat.len() == 1 {
+                base_segments.get_or_insert_with(|| [path::basename(&file_segments).to_string()])
+            } else {
+                &file_segments
+            };
+            if path::match_segments(pat, use_file, &self.options, partial) {
                 return if self.options.flip_negate { true } else { !self.negate };
             }
         }
