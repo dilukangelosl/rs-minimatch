@@ -29,8 +29,17 @@ programming over bounded index pairs, so there's no exponential case to
 trigger in the first place, by construction rather than by a runtime
 safety cap.
 
-That said, read [Benchmarks](#benchmarks) before assuming this is a free
-performance upgrade — the honest result is mixed, not a blanket win.
+That said, this isn't a blanket performance upgrade — measured against
+the real `minimatch` package on the same machine, same data:
+
+| Operation | Speedup |
+|---|---|
+| Compile 1,000 patterns | **3.3x faster** |
+| Match 10,000 paths | **1.4x faster** |
+| Filter 10,000 paths | **27x slower** |
+
+That last row is real, not a typo — see [Benchmarks](#benchmarks) below
+for why, and what it'd take to close it.
 
 ## Also available as
 
