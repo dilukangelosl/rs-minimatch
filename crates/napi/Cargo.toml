@@ -1,0 +1,14 @@
+[package]
+name = "rs-minimatch-napi"
+description = "NAPI-RS Node.js bindings for rs-minimatch-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+rs-minimatch-core = { path = "../core" }

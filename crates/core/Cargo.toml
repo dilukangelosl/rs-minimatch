@@ -1,0 +1,16 @@
+[package]
+name = "rs-minimatch-core"
+description = "Zero-dependency Rust implementation of minimatch's glob pattern matching, immune to ReDoS by construction"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "rs_minimatch_core"
+path = "src/lib.rs"
+
+[dependencies]
+
+[dev-dependencies]
