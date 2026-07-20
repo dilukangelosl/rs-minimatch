@@ -1,0 +1,9 @@
+{
+  "name": "rs-minimatch-benchmarks",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Throwaway comparison harness: rs-minimatch vs the real minimatch npm package, same operations/data shape as crates/core/benches/core_benches.rs",
+  "devDependencies": {
+    "minimatch": "^10.0.0"
+  }
+}
