@@ -7,6 +7,16 @@ name: Release
 # `rs-minimatch-<platform>-<arch>` package per target, then publishes the
 # main `rs-minimatch` package with those as optionalDependencies.
 #
+# The Windows package is named "rs-minimatch-windows-x64", not
+# "rs-minimatch-win32-x64" - npm's automated spam filter blocks new,
+# unscoped package names that combine "win32" with a number, full stop,
+# regardless of what the package actually contains (a known issue, not
+# specific to this account - see e.g.
+# https://github.com/npm/npm/issues/20866 and other Rust-for-npm projects
+# hitting the same thing). native.js maps process.platform "win32" to the
+# "windows" package-name segment at require() time; process.platform
+# itself is unaffected.
+#
 # Requires an NPM_TOKEN secret (an npm "Automation" access token) on this
 # repo - Settings > Secrets and variables > Actions.
 
@@ -35,7 +45,7 @@ jobs:
             lib: librs_minimatch_napi.so
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            pkg: win32-x64
+            pkg: windows-x64
             lib: rs_minimatch_napi.dll
     runs-on: ${{ matrix.os }}
     steps:
@@ -92,7 +102,7 @@ jobs:
         run: |
           set -uo pipefail
           version="${GITHUB_REF_NAME#v}"
-          for pkg in darwin-arm64 linux-x64 linux-arm64 win32-x64; do
+          for pkg in darwin-arm64 linux-x64 linux-arm64 windows-x64; do
             name="rs-minimatch-$pkg"
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "$name@$version already published, skipping"
@@ -121,7 +131,7 @@ jobs:
           dir="packages/rs-minimatch"
           cd "$dir"
           npm pkg set version="$version"
-          for pkg in darwin-arm64 linux-x64 linux-arm64 win32-x64; do
+          for pkg in darwin-arm64 linux-x64 linux-arm64 windows-x64; do
             npm pkg set "optionalDependencies.rs-minimatch-$pkg=$version"
           done
           npm publish --access public

@@ -11,12 +11,19 @@ const path = require('path')
 
 const localBinding = path.join(__dirname, 'rs-minimatch.node')
 
+// npm's package registry name for the win32 package is "windows", not
+// "win32" - npm's automated spam filter blocks new, unscoped package names
+// combining "win32" with a number (like "win32-x64") outright. This is
+// purely a package-naming workaround; process.platform itself is still
+// (and always will be) "win32" on Windows.
+const platformName = process.platform === 'win32' ? 'windows' : process.platform
+
 let binding
 if (existsSync(localBinding)) {
   binding = require(localBinding)
 } else {
   try {
-    binding = require(`rs-minimatch-${process.platform}-${process.arch}`)
+    binding = require(`rs-minimatch-${platformName}-${process.arch}`)
   } catch {
     throw new Error(
       `rs-minimatch: no native binding found for ${process.platform}-${process.arch}. ` +

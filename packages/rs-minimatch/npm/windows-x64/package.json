@@ -1,12 +1,12 @@
 {
-  "name": "rs-minimatch-win32-x64",
+  "name": "rs-minimatch-windows-x64",
   "version": "0.1.0",
-  "description": "Prebuilt rs-minimatch native addon for win32-x64",
+  "description": "Prebuilt rs-minimatch native addon for Windows x64",
   "os": ["win32"],
   "cpu": ["x64"],
-  "main": "rs-minimatch.win32-x64.node",
+  "main": "rs-minimatch.windows-x64.node",
   "files": [
-    "rs-minimatch.win32-x64.node"
+    "rs-minimatch.windows-x64.node"
   ],
   "license": "MIT",
   "author": "diluk angelo <dilukangelo@gmail.com>",
