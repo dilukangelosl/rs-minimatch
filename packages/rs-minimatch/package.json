@@ -1,6 +1,6 @@
 {
   "name": "rs-minimatch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Rust-powered drop-in replacement for minimatch, immune to ReDoS by construction",
   "main": "index.js",
   "license": "MIT",
@@ -22,10 +22,10 @@
     "node": ">=16"
   },
   "optionalDependencies": {
-    "rs-minimatch-darwin-arm64": "0.1.0",
-    "rs-minimatch-linux-x64": "0.1.0",
-    "rs-minimatch-linux-arm64": "0.1.0",
-    "rs-minimatch-windows-x64": "0.1.0"
+    "rs-minimatch-darwin-arm64": "0.1.1",
+    "rs-minimatch-linux-x64": "0.1.1",
+    "rs-minimatch-linux-arm64": "0.1.1",
+    "rs-minimatch-windows-x64": "0.1.1"
   },
   "keywords": [
     "minimatch",

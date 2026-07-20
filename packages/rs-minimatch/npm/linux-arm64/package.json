@@ -1,6 +1,6 @@
 {
   "name": "rs-minimatch-linux-arm64",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Prebuilt rs-minimatch native addon for linux-arm64",
   "os": ["linux"],
   "cpu": ["arm64"],

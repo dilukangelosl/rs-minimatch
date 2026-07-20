@@ -594,14 +594,14 @@ checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
 name = "rs-minimatch-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rs-minimatch-core",
 ]
 
 [[package]]
 name = "rs-minimatch-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "criterion",
  "rand",
@@ -611,7 +611,7 @@ dependencies = [
 
 [[package]]
 name = "rs-minimatch-napi"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "napi",
  "napi-build",
