@@ -1,0 +1,127 @@
+name: Release
+
+# Triggered by pushing a version tag, e.g.:
+#   git tag v0.1.1 && git push origin v0.1.1
+#
+# Builds the NAPI addon for each supported platform, publishes one
+# `rs-minimatch-<platform>-<arch>` package per target, then publishes the
+# main `rs-minimatch` package with those as optionalDependencies.
+#
+# Requires an NPM_TOKEN secret (an npm "Automation" access token) on this
+# repo - Settings > Secrets and variables > Actions.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: aarch64-apple-darwin
+            pkg: darwin-arm64
+            lib: librs_minimatch_napi.dylib
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            pkg: linux-x64
+            lib: librs_minimatch_napi.so
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            pkg: linux-arm64
+            lib: librs_minimatch_napi.so
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            pkg: win32-x64
+            lib: rs_minimatch_napi.dll
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install aarch64 cross-compiler
+        if: matrix.pkg == 'linux-arm64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
+
+      - name: Build native addon
+        run: cargo build -p rs-minimatch-napi --release --target ${{ matrix.target }}
+
+      - name: Stage addon for its npm package
+        shell: bash
+        run: |
+          mkdir -p "packages/rs-minimatch/npm/${{ matrix.pkg }}"
+          cp "target/${{ matrix.target }}/release/${{ matrix.lib }}" \
+             "packages/rs-minimatch/npm/${{ matrix.pkg }}/rs-minimatch.${{ matrix.pkg }}.node"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.pkg }}
+          path: packages/rs-minimatch/npm/${{ matrix.pkg }}/rs-minimatch.${{ matrix.pkg }}.node
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Publish platform packages
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -uo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          for pkg in darwin-arm64 linux-x64 linux-arm64 win32-x64; do
+            name="rs-minimatch-$pkg"
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version already published, skipping"
+              continue
+            fi
+            dir="packages/rs-minimatch/npm/$pkg"
+            cp "artifacts/$pkg/rs-minimatch.$pkg.node" "$dir/"
+            if ! (cd "$dir" && npm pkg set version="$version" && npm publish --access public); then
+              # One platform failing shouldn't block the rest - optional
+              # deps degrade gracefully, so the main package still ships.
+              echo "::warning::failed to publish $name@$version, continuing"
+            fi
+            sleep 20
+          done
+
+      - name: Publish main package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          if npm view "rs-minimatch@$version" version >/dev/null 2>&1; then
+            echo "rs-minimatch@$version already published, skipping"
+            exit 0
+          fi
+          dir="packages/rs-minimatch"
+          cd "$dir"
+          npm pkg set version="$version"
+          for pkg in darwin-arm64 linux-x64 linux-arm64 win32-x64; do
+            npm pkg set "optionalDependencies.rs-minimatch-$pkg=$version"
+          done
+          npm publish --access public
