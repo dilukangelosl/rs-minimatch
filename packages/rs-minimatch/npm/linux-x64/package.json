@@ -1,0 +1,17 @@
+{
+  "name": "rs-minimatch-linux-x64",
+  "version": "0.1.0",
+  "description": "Prebuilt rs-minimatch native addon for linux-x64",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "main": "rs-minimatch.linux-x64.node",
+  "files": [
+    "rs-minimatch.linux-x64.node"
+  ],
+  "license": "MIT",
+  "author": "diluk angelo <dilukangelo@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dilukangelosl/rs-minimatch.git"
+  }
+}

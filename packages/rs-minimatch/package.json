@@ -1,0 +1,36 @@
+{
+  "name": "rs-minimatch",
+  "version": "0.1.0",
+  "description": "Rust-powered drop-in replacement for minimatch, immune to ReDoS by construction",
+  "main": "index.js",
+  "license": "MIT",
+  "author": "diluk angelo <dilukangelo@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dilukangelosl/rs-minimatch.git"
+  },
+  "files": [
+    "index.js",
+    "native.js",
+    "rs-minimatch.node",
+    "functions"
+  ],
+  "scripts": {
+    "build": "node build.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "optionalDependencies": {
+    "rs-minimatch-darwin-arm64": "0.1.0",
+    "rs-minimatch-linux-x64": "0.1.0",
+    "rs-minimatch-linux-arm64": "0.1.0",
+    "rs-minimatch-win32-x64": "0.1.0"
+  },
+  "keywords": [
+    "minimatch",
+    "glob",
+    "rust",
+    "napi-rs"
+  ]
+}

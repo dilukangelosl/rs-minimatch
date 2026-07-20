@@ -12,3 +12,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rs-minimatch-core = { path = "../core" }
+napi = { version = "3", default-features = false, features = ["napi4"] }
+napi-derive = "3"
+
+[build-dependencies]
+napi-build = "2"
