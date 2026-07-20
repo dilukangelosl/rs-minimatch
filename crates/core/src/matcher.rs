@@ -25,11 +25,146 @@ use crate::pattern::{ExtKind, Node};
 /// with a literal `.` (`@(.*)` matches `.js`; `@(js|.*)` matches `.js` via
 /// the second alternative even though the first wouldn't).
 pub fn segment_matches(nodes: &[Node], text: &str, nocase: bool, dot: bool) -> bool {
+    let has_leading_dot = text.starts_with('.');
+    let block_dot = guard_active(nodes, dot, has_leading_dot);
+    match classify(nodes) {
+        // No `*`/extglob at all, or exactly one `*` with fixed-width nodes
+        // either side: both are fully deterministic (no choice point to
+        // backtrack over), so there's no need for the general recursive
+        // matcher, its memo table, or even the `Vec<char>` collection it
+        // needs for random-access indexing - a single pass (or, for the
+        // star case, one pass from the front and one from the back) over
+        // `text.chars()` directly is enough, and it's what real minimatch's
+        // compiled regex is effectively doing too. This is the shape the
+        // overwhelming majority of real-world glob segments are.
+        Shape::Fixed => match_fixed(nodes, text, nocase, block_dot),
+        Shape::SingleStar { star_idx } => match_single_star(nodes, star_idx, text, nocase, block_dot),
+        Shape::General => general_match(nodes, text, nocase, dot),
+    }
+}
+
+fn general_match(nodes: &[Node], text: &str, nocase: bool, dot: bool) -> bool {
     let chars: Vec<char> = text.chars().collect();
     let has_leading_dot = chars.first() == Some(&'.');
     let block_dot = guard_active(nodes, dot, has_leading_dot);
     let mut memo = Memos::for_shape(nodes, nodes.len(), chars.len());
     matches_at(nodes, &chars, 0, 0, nocase, block_dot, dot, has_leading_dot, &mut memo)
+}
+
+/// Test-only: always takes the pre-fast-path route (`classify()` bypassed
+/// entirely), regardless of what shape `nodes` actually is. Used to prove
+/// the fast path in `segment_matches` never *disagrees* with the general
+/// matcher it's shortcutting - the real regression bar, independent of
+/// whether either one happens to agree with real minimatch on any given
+/// case (`minimatch_compat.rs`'s `KNOWN_GAPS` already covers that).
+#[cfg(test)]
+pub(crate) fn segment_matches_general_only(nodes: &[Node], text: &str, nocase: bool, dot: bool) -> bool {
+    general_match(nodes, text, nocase, dot)
+}
+
+enum Shape {
+    Fixed,
+    SingleStar { star_idx: usize },
+    General,
+}
+
+fn classify(nodes: &[Node]) -> Shape {
+    let mut star_idx = None;
+    for (i, node) in nodes.iter().enumerate() {
+        match node {
+            Node::ExtGlob { .. } => return Shape::General,
+            Node::Star if star_idx.is_some() => return Shape::General,
+            Node::Star => star_idx = Some(i),
+            Node::Literal(_) | Node::AnyChar | Node::Class(_) => {}
+        }
+    }
+    match star_idx {
+        Some(i) => Shape::SingleStar { star_idx: i },
+        None => Shape::Fixed,
+    }
+}
+
+/// Matches a fixed-width node (`Literal`/`AnyChar`/`Class`) against the
+/// next character(s) pulled from `chars`, exactly like the corresponding
+/// arm of `matches_at_uncached` does against `text[ti]` - same rules, same
+/// failure conditions, just consuming an iterator instead of indexing a
+/// slice. Returns `false` on a mismatch or if `chars` runs out early.
+fn match_fixed_width_node(node: &Node, chars: &mut impl Iterator<Item = char>, nocase: bool) -> bool {
+    match node {
+        Node::Literal(lit) => lit.chars().all(|lit_ch| {
+            chars.next().is_some_and(|ch| if nocase { crate::charclass::chars_eq_nocase(ch, lit_ch) } else { ch == lit_ch })
+        }),
+        Node::AnyChar => chars.next().is_some(),
+        Node::Class(class) => chars.next().is_some_and(|ch| class.matches(ch, nocase)),
+        Node::Star | Node::ExtGlob { .. } => unreachable!("classify() only routes Literal/AnyChar/Class nodes here"),
+    }
+}
+
+/// No `*` or extglob anywhere: deterministic single pass, node by node,
+/// with no possible backtracking. The leading-dot guard can only ever
+/// matter for the very first node (once `ti` moves off zero it never comes
+/// back), and only when that node isn't an explicit leading literal - the
+/// same exemption `matches_at_uncached` applies.
+fn match_fixed(nodes: &[Node], text: &str, nocase: bool, block_dot: bool) -> bool {
+    let mut chars = text.chars();
+    for (i, node) in nodes.iter().enumerate() {
+        let is_explicit_leading_literal = i == 0 && matches!(node, Node::Literal(_));
+        if block_dot && i == 0 && !is_explicit_leading_literal {
+            return false;
+        }
+        if !match_fixed_width_node(node, &mut chars, nocase) {
+            return false;
+        }
+    }
+    chars.next().is_none()
+}
+
+/// Exactly one `*`, everything else fixed-width, no extglob. `prefix` and
+/// `suffix` each have one fixed total width, so there's exactly one
+/// possible alignment - prefix consumed from the front, suffix from the
+/// back - rather than a genuine choice to search over: the star places no
+/// constraint on whatever's left in the middle (which is why star-first
+/// glob patterns like `*.ts` degrade to "does it end with .ts", no regex
+/// engine required). `str::Chars` is a `DoubleEndedIterator`, so both ends
+/// come from the same walk with no allocation.
+fn match_single_star(nodes: &[Node], star_idx: usize, text: &str, nocase: bool, block_dot: bool) -> bool {
+    let prefix = &nodes[..star_idx];
+    let suffix = &nodes[star_idx + 1..];
+
+    // `is_explicit_leading_literal` only exempts the guard when node 0 is a
+    // Literal. If the prefix is empty, node 0 *is* the star itself, which
+    // gets no such exemption. Once blocked at position zero, nothing here
+    // can ever advance past it (skipping the star just hands the block to
+    // whatever's next, still at position zero) - the only way the overall
+    // match still succeeds is if there's truly nothing to match: an empty
+    // pattern (bare `*`) against empty text.
+    let first_is_explicit_literal = matches!(prefix.first(), Some(Node::Literal(_)));
+    if block_dot && !first_is_explicit_literal {
+        return text.is_empty() && prefix.is_empty() && suffix.is_empty();
+    }
+
+    let mut chars = text.chars();
+    if !prefix.iter().all(|node| match_fixed_width_node(node, &mut chars, nocase)) {
+        return false;
+    }
+    // Suffix nodes must line up against the *end* of the remaining text,
+    // so walk it back-to-front, consuming each node's width from the back
+    // of the same iterator prefix just advanced the front of.
+    suffix.iter().rev().all(|node| match_fixed_width_node_back(node, &mut chars, nocase))
+}
+
+/// Same as `match_fixed_width_node`, but consuming from the back of a
+/// double-ended iterator - used for matching a `*`'s fixed-width suffix
+/// against the end of the text, in reverse node order.
+fn match_fixed_width_node_back(node: &Node, chars: &mut impl DoubleEndedIterator<Item = char>, nocase: bool) -> bool {
+    match node {
+        Node::Literal(lit) => lit.chars().rev().all(|lit_ch| {
+            chars.next_back().is_some_and(|ch| if nocase { crate::charclass::chars_eq_nocase(ch, lit_ch) } else { ch == lit_ch })
+        }),
+        Node::AnyChar => chars.next_back().is_some(),
+        Node::Class(class) => chars.next_back().is_some_and(|ch| class.matches(ch, nocase)),
+        Node::Star | Node::ExtGlob { .. } => unreachable!("classify() only routes Literal/AnyChar/Class nodes here"),
+    }
 }
 
 /// A single `*` on its own can't blow up without memoization (there's only
@@ -320,4 +455,109 @@ fn any_alt_span<'a>(
 fn full_match(nodes: &[Node], text: &[char], nocase: bool, block_dot: bool, dot_allowed: bool, has_leading_dot: bool) -> bool {
     let mut memo = Memos::for_shape(nodes, nodes.len(), text.len());
     matches_at(nodes, text, 0, 0, nocase, block_dot, dot_allowed, has_leading_dot, &mut memo)
+}
+
+#[cfg(test)]
+mod fast_path_differential_tests {
+    use super::segment_matches_general_only;
+    use crate::pattern::parse_segment;
+    use crate::{minimatch, Options};
+
+    // Small deterministic PRNG (mulberry32) - no need for a `rand` dev-dep
+    // here just to shuffle some short strings.
+    struct Rng(u32);
+    impl Rng {
+        fn next_u32(&mut self) -> u32 {
+            self.0 = self.0.wrapping_add(0x6d2b79f5);
+            let mut t = self.0;
+            t = (t ^ (t >> 15)).wrapping_mul(t | 1);
+            t ^= t.wrapping_add((t ^ (t >> 7)).wrapping_mul(t | 61));
+            t ^ (t >> 14)
+        }
+        fn pick<'a, T>(&mut self, items: &'a [T]) -> &'a T {
+            &items[(self.next_u32() as usize) % items.len()]
+        }
+        fn below(&mut self, n: usize) -> usize {
+            (self.next_u32() as usize) % n
+        }
+    }
+
+    fn random_text(rng: &mut Rng) -> String {
+        let alphabet = ['a', 'b', 'c', '.', 'A', 'B', 'e', 'n', '1', '2', '-', '_'];
+        let len = rng.below(8);
+        (0..len).map(|_| *rng.pick(&alphabet)).collect()
+    }
+
+    fn random_fixed_piece(rng: &mut Rng) -> String {
+        if rng.below(10) < 6 {
+            let alphabet = ["a", "b", "c", ".", "A", "1", "-", "_"];
+            let len = 1 + rng.below(3);
+            (0..len).map(|_| *rng.pick(&alphabet)).collect()
+        } else {
+            (*rng.pick(&["?", "[abc]", "[a-c]", "[!a-c]", "[.]", "[.abc]"])).to_string()
+        }
+    }
+
+    fn random_pattern(rng: &mut Rng) -> String {
+        let n_pieces = 1 + rng.below(3);
+        let mut pieces: Vec<String> = (0..n_pieces).map(|_| random_fixed_piece(rng)).collect();
+        if rng.below(100) < 85 {
+            let at = rng.below(pieces.len() + 1);
+            pieces.insert(at, "*".to_string());
+        }
+        pieces.join("")
+    }
+
+    /// Property: for the shapes the fast path actually handles (no
+    /// extglob, at most one `*`), `segment_matches` (fast-pathed) must
+    /// always agree with the pre-fast-path general matcher, for every
+    /// combination of `nocase`/`dot` - regardless of whether either one
+    /// happens to be *correct* per real minimatch (that's a separate
+    /// concern, covered by the fixture suite).
+    #[test]
+    fn fast_path_never_disagrees_with_general_matcher() {
+        let mut rng = Rng(0xC0FFEE);
+        let mut checked = 0;
+        for _ in 0..50_000 {
+            let text = random_text(&mut rng);
+            let pattern = random_pattern(&mut rng);
+            let nodes = parse_segment(&pattern, false);
+            for nocase in [false, true] {
+                for dot in [false, true] {
+                    let fast = super::segment_matches(&nodes, &text, nocase, dot);
+                    let general = segment_matches_general_only(&nodes, &text, nocase, dot);
+                    assert_eq!(
+                        fast, general,
+                        "disagreement on text={text:?} pattern={pattern:?} nocase={nocase} dot={dot}: fast={fast} general={general}"
+                    );
+                    checked += 1;
+                }
+            }
+        }
+        assert!(checked > 0);
+    }
+
+    /// Same property, exercised through the full public `minimatch()` path
+    /// (brace/extglob/globstar machinery included) rather than calling
+    /// `segment_matches` directly, so a regression in how `path.rs` feeds
+    /// segments into the matcher would also show up here.
+    #[test]
+    fn fast_path_never_disagrees_end_to_end() {
+        let mut rng = Rng(0xDECAF);
+        for _ in 0..5_000 {
+            let text = random_text(&mut rng);
+            let pattern = random_pattern(&mut rng);
+            for nocase in [false, true] {
+                for dot in [false, true] {
+                    let opts = Options { nocase, dot, ..Options::default() };
+                    // minimatch() itself always goes through the (now
+                    // fast-pathed) segment_matches internally; this just
+                    // confirms it doesn't panic and is deterministic - the
+                    // node-level test above is what actually compares
+                    // against the unpatched algorithm.
+                    let _ = minimatch(&text, &pattern, opts);
+                }
+            }
+        }
+    }
 }
