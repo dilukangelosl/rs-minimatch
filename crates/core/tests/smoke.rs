@@ -22,6 +22,24 @@ fn globstar() {
 }
 
 #[test]
+fn trailing_globstar_needs_something_to_sweep() {
+    // "a/**" spells out a literal "/" - it must match "a/" and "a/b" (there's
+    // something for the trailing ** to sweep, even zero-width for a bare
+    // trailing slash) but not "a" alone, which never contains that "/" at
+    // all. Verified against the real minimatch package directly.
+    assert!(!minimatch("a", "a/**", opts()));
+    assert!(minimatch("a/", "a/**", opts()));
+    assert!(minimatch("a/b", "a/**", opts()));
+    // A globstar with nothing before it has no such anchor requirement.
+    assert!(minimatch("foo.js", "**", opts()));
+    // Same anchor rule still has to hold with a literal *after* the
+    // trailing run too, decided via a leading globstar with some slack.
+    assert!(!minimatch("a", "**/a/**", opts()));
+    assert!(minimatch("a/a", "**/a/**", opts()));
+    assert!(!minimatch("x/a", "**/a/**", opts()));
+}
+
+#[test]
 fn char_classes() {
     assert!(minimatch("a.js", "[a-c].js", opts()));
     assert!(!minimatch("d.js", "[a-c].js", opts()));

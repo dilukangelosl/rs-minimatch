@@ -102,16 +102,40 @@ fn match_at(pattern: &[Segment], file: &[String], pi: usize, fi: usize, opts: &O
     result
 }
 
+/// Does a bare trailing `**` (nothing after it in the pattern) match
+/// `file[entry_fi..]`? Real minimatch requires it to sweep at least one
+/// segment - `a/**` matches `a/` and `a/b` but not `a` itself, because the
+/// pattern spells out a literal `/` that a bare `a` never contains. This is
+/// computed directly (not through the memoized `(pi, fi)` table) precisely
+/// *because* it must never be shared between two different call sites: a
+/// literal segment handing off into a fresh globstar run (nothing consumed
+/// yet - must fail here) and that same globstar mid-recursion after it has
+/// already eaten something (must succeed) can otherwise land on the exact
+/// same `(pi, fi)` cell with opposite correct answers. See the Pattern-arm
+/// caller below.
+fn sweep_trailing_globstar(file: &[String], entry_fi: usize, dot: bool) -> bool {
+    if entry_fi >= file.len() {
+        return false;
+    }
+    file[entry_fi..]
+        .iter()
+        .all(|seg| seg != "." && seg != ".." && (dot || !seg.starts_with('.')))
+}
+
 fn match_at_uncached(pattern: &[Segment], file: &[String], pi: usize, fi: usize, opts: &Options, partial: bool, memo: &mut Memo) -> bool {
     if pi == pattern.len() && fi == file.len() {
         return true;
     }
     if fi == file.len() {
         // Ran out of file with pattern remaining. Fine in partial mode
-        // (matching a path prefix against a longer pattern), or if
-        // everything left in the pattern is globstars - `**` (and `**/**`)
-        // can always collapse to zero segments, so e.g. plain "**" must
-        // still match a single-segment file like "a".
+        // (matching a path prefix against a longer pattern). Otherwise only
+        // true if everything left is globstars *and* we got here through
+        // one of them actually consuming something (self-recursion within
+        // this same run, e.g. plain "**" eating a whole single-segment
+        // file) - a *fresh* zero-consumption entry into a trailing run is
+        // handled and rejected by the Pattern arm below before it ever
+        // reaches this cell, so reaching here with a pure-globstar suffix
+        // only happens via legitimate in-run consumption.
         return partial || pattern[pi..].iter().all(|s| matches!(s, Segment::GlobStar));
     }
     if pi == pattern.len() {
@@ -150,7 +174,14 @@ fn match_at_uncached(pattern: &[Segment], file: &[String], pi: usize, fi: usize,
                 return false;
             }
             let dot_allowed = opts.dot || pattern::starts_with_literal_dot(nodes);
-            crate::matcher::segment_matches(nodes, seg, opts.nocase, dot_allowed) && match_at(pattern, file, pi + 1, fi + 1, opts, partial, memo)
+            if !crate::matcher::segment_matches(nodes, seg, opts.nocase, dot_allowed) {
+                return false;
+            }
+            let (next_pi, next_fi) = (pi + 1, fi + 1);
+            if next_pi < pattern.len() && pattern[next_pi..].iter().all(|s| matches!(s, Segment::GlobStar)) {
+                return partial || sweep_trailing_globstar(file, next_fi, opts.dot);
+            }
+            match_at(pattern, file, next_pi, next_fi, opts, partial, memo)
         }
     }
 }
