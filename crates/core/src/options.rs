@@ -15,6 +15,9 @@ pub struct Options {
     pub partial: bool,
     pub flip_negate: bool,
     pub preserve_multiple_slashes: bool,
+    /// `match_list`/`match()`: if nothing in the list matches, return the
+    /// pattern itself instead of an empty result.
+    pub nonull: bool,
     /// Caps recursion when matching `**` against many path segments, same
     /// safety valve minimatch itself uses (default matches theirs: 200).
     pub max_globstar_recursion: usize,
@@ -50,6 +53,7 @@ impl Default for Options {
             partial: false,
             flip_negate: false,
             preserve_multiple_slashes: false,
+            nonull: false,
             max_globstar_recursion: 200,
         }
     }

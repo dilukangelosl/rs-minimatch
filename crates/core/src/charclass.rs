@@ -80,14 +80,23 @@ impl PosixClass {
     }
 }
 
+/// Full Unicode case folding (not ASCII-only), so e.g. nocase matching
+/// treats 'å' and 'Å' as equal, not just 'a'/'A'. `to_lowercase()` can
+/// expand to more than one char for a handful of codepoints; comparing the
+/// first is a reasonable approximation for glob matching purposes.
+pub(crate) fn chars_eq_nocase(a: char, b: char) -> bool {
+    a == b || a.to_lowercase().eq(b.to_lowercase())
+}
+
+fn lower(c: char) -> char {
+    c.to_lowercase().next().unwrap_or(c)
+}
+
 impl ClassItem {
     fn matches(&self, c: char, nocase: bool) -> bool {
         match self {
-            ClassItem::Char(x) => *x == c || (nocase && x.eq_ignore_ascii_case(&c)),
-            ClassItem::Range(lo, hi) => {
-                (*lo..=*hi).contains(&c)
-                    || (nocase && (lo.to_ascii_lowercase()..=hi.to_ascii_lowercase()).contains(&c.to_ascii_lowercase()))
-            }
+            ClassItem::Char(x) => *x == c || (nocase && chars_eq_nocase(*x, c)),
+            ClassItem::Range(lo, hi) => (*lo..=*hi).contains(&c) || (nocase && (lower(*lo)..=lower(*hi)).contains(&lower(c))),
             ClassItem::Posix(p) => p.matches(c),
         }
     }
@@ -157,11 +166,14 @@ pub fn parse(chars: &[char], start: usize) -> Option<(CharClass, usize)> {
             continue;
         }
 
-        // c-] means literal "c-"; c-<other> starts a range.
+        // c-] means literal "c-"; c-<other> starts a range. Only consume
+        // through the '-', leaving the ']' itself for the terminator check
+        // on the next loop iteration - consuming it here too would let the
+        // class run off the end looking for a close that already passed.
         if chars.get(i + 1) == Some(&'-') && chars.get(i + 2) == Some(&']') {
             items.push(ClassItem::Char(c));
             items.push(ClassItem::Char('-'));
-            i += 3;
+            i += 2;
             continue;
         }
         if chars.get(i + 1) == Some(&'-') && chars.get(i + 2).is_some() {

@@ -1,0 +1,3791 @@
+[
+  {
+    "pattern": "a*",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "a",
+      "abc",
+      "abd",
+      "abe"
+    ]
+  },
+  {
+    "pattern": "X*",
+    "options": {
+      "nonull": true
+    },
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "X*"
+    ]
+  },
+  {
+    "pattern": "X*",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "\\*",
+    "options": {
+      "nonull": true
+    },
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "\\*"
+    ]
+  },
+  {
+    "pattern": "\\**",
+    "options": {
+      "nonull": true
+    },
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "\\**"
+    ]
+  },
+  {
+    "pattern": "\\*\\*",
+    "options": {
+      "nonull": true
+    },
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "\\*\\*"
+    ]
+  },
+  {
+    "pattern": "b*/",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "bdir/"
+    ]
+  },
+  {
+    "pattern": "c*",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "c",
+      "ca",
+      "cb"
+    ]
+  },
+  {
+    "pattern": "{c*,./c*}",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "c",
+      "ca",
+      "cb"
+    ]
+  },
+  {
+    "pattern": "**",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "a",
+      "abc",
+      "abd",
+      "abe",
+      "b",
+      "bb",
+      "bcd",
+      "bdir/",
+      "bdir/cfile",
+      "c",
+      "ca",
+      "cb",
+      "d",
+      "dd",
+      "de"
+    ]
+  },
+  {
+    "pattern": "**/**/**",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "a",
+      "abc",
+      "abd",
+      "abe",
+      "b",
+      "bb",
+      "bcd",
+      "bdir/",
+      "bdir/cfile",
+      "c",
+      "ca",
+      "cb",
+      "d",
+      "dd",
+      "de"
+    ]
+  },
+  {
+    "pattern": "\\.\\./*/",
+    "options": {
+      "nonull": true
+    },
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "\\.\\./*/"
+    ]
+  },
+  {
+    "pattern": "s/\\..*//",
+    "options": {
+      "nonull": true
+    },
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "s/\\..*//"
+    ]
+  },
+  {
+    "pattern": "/^root:/{s/^[^:]*:[^:]*:([^:]*).*$/\\1/",
+    "options": {
+      "nonull": true
+    },
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "/^root:/{s/^[^:]*:[^:]*:([^:]*).*$/\\1/"
+    ]
+  },
+  {
+    "pattern": "/^root:/{s/^[^:]*:[^:]*:([^:]*).*$/\u0001/",
+    "options": {
+      "nonull": true
+    },
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "/^root:/{s/^[^:]*:[^:]*:([^:]*).*$/\u0001/"
+    ]
+  },
+  {
+    "pattern": "[a-c]b*",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "cb"
+    ]
+  },
+  {
+    "pattern": "[a-y]*[^c]",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "bdir/",
+      "ca",
+      "cb",
+      "dd",
+      "de"
+    ]
+  },
+  {
+    "pattern": "a*[^c]",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile"
+    ],
+    "expected": [
+      "abd",
+      "abe"
+    ]
+  },
+  {
+    "pattern": "a[X-]b",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile",
+      "a-b",
+      "aXb"
+    ],
+    "expected": [
+      "a-b",
+      "aXb"
+    ]
+  },
+  {
+    "pattern": "[^a-c]*",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile",
+      "a-b",
+      "aXb",
+      ".x",
+      ".y"
+    ],
+    "expected": [
+      "d",
+      "dd",
+      "de"
+    ]
+  },
+  {
+    "pattern": "a\\*b/*",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile",
+      "a-b",
+      "aXb",
+      ".x",
+      ".y",
+      "a*b/",
+      "a*b/ooo"
+    ],
+    "expected": [
+      "a*b/ooo"
+    ]
+  },
+  {
+    "pattern": "a\\*?/*",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile",
+      "a-b",
+      "aXb",
+      ".x",
+      ".y",
+      "a*b/",
+      "a*b/ooo"
+    ],
+    "expected": [
+      "a*b/ooo"
+    ]
+  },
+  {
+    "pattern": "*\\\\!*",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "echo !7"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "*\\!*",
+    "options": {},
+    "files": [
+      "echo !7"
+    ],
+    "expected": [
+      "echo !7"
+    ]
+  },
+  {
+    "pattern": "*.\\*",
+    "options": {},
+    "files": [
+      "r.*"
+    ],
+    "expected": [
+      "r.*"
+    ]
+  },
+  {
+    "pattern": "a[b]c",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile",
+      "a-b",
+      "aXb",
+      ".x",
+      ".y",
+      "a*b/",
+      "a*b/ooo"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "a[\\b]c",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile",
+      "a-b",
+      "aXb",
+      ".x",
+      ".y",
+      "a*b/",
+      "a*b/ooo"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "a?c",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile",
+      "a-b",
+      "aXb",
+      ".x",
+      ".y",
+      "a*b/",
+      "a*b/ooo"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "a\\*c",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "abc"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "",
+    "options": {
+      "null": true
+    },
+    "files": [
+      ""
+    ],
+    "expected": [
+      ""
+    ]
+  },
+  {
+    "pattern": "*/man*/bash.*",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile",
+      "a-b",
+      "aXb",
+      ".x",
+      ".y",
+      "a*b/",
+      "a*b/ooo",
+      "man/",
+      "man/man1/",
+      "man/man1/bash.1"
+    ],
+    "expected": [
+      "man/man1/bash.1"
+    ]
+  },
+  {
+    "pattern": "man/man1/bash.1",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "abc",
+      "abd",
+      "abe",
+      "bb",
+      "bcd",
+      "ca",
+      "cb",
+      "dd",
+      "de",
+      "bdir/",
+      "bdir/cfile",
+      "a-b",
+      "aXb",
+      ".x",
+      ".y",
+      "a*b/",
+      "a*b/ooo",
+      "man/",
+      "man/man1/",
+      "man/man1/bash.1"
+    ],
+    "expected": [
+      "man/man1/bash.1"
+    ]
+  },
+  {
+    "pattern": "a***c",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "a*****?c",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "?*****??",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "*****??",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "?*****?c",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "?***?****c",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "?***?****?",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "?***?****",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "*******c",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "*******?",
+    "options": {},
+    "files": [
+      "abc"
+    ],
+    "expected": [
+      "abc"
+    ]
+  },
+  {
+    "pattern": "a*cd**?**??k",
+    "options": {},
+    "files": [
+      "abcdecdhjk"
+    ],
+    "expected": [
+      "abcdecdhjk"
+    ]
+  },
+  {
+    "pattern": "a**?**cd**?**??k",
+    "options": {},
+    "files": [
+      "abcdecdhjk"
+    ],
+    "expected": [
+      "abcdecdhjk"
+    ]
+  },
+  {
+    "pattern": "a**?**cd**?**??k***",
+    "options": {},
+    "files": [
+      "abcdecdhjk"
+    ],
+    "expected": [
+      "abcdecdhjk"
+    ]
+  },
+  {
+    "pattern": "a**?**cd**?**??***k",
+    "options": {},
+    "files": [
+      "abcdecdhjk"
+    ],
+    "expected": [
+      "abcdecdhjk"
+    ]
+  },
+  {
+    "pattern": "a**?**cd**?**??***k**",
+    "options": {},
+    "files": [
+      "abcdecdhjk"
+    ],
+    "expected": [
+      "abcdecdhjk"
+    ]
+  },
+  {
+    "pattern": "a****c**?**??*****",
+    "options": {},
+    "files": [
+      "abcdecdhjk"
+    ],
+    "expected": [
+      "abcdecdhjk"
+    ]
+  },
+  {
+    "pattern": "[-abc]",
+    "options": {},
+    "files": [
+      "-"
+    ],
+    "expected": [
+      "-"
+    ]
+  },
+  {
+    "pattern": "[abc-]",
+    "options": {},
+    "files": [
+      "-"
+    ],
+    "expected": [
+      "-"
+    ]
+  },
+  {
+    "pattern": "\\",
+    "options": {},
+    "files": [
+      "\\"
+    ],
+    "expected": [
+      "\\"
+    ]
+  },
+  {
+    "pattern": "[\\\\]",
+    "options": {},
+    "files": [
+      "\\"
+    ],
+    "expected": [
+      "\\"
+    ]
+  },
+  {
+    "pattern": "[[]",
+    "options": {},
+    "files": [
+      "["
+    ],
+    "expected": [
+      "["
+    ]
+  },
+  {
+    "pattern": "[",
+    "options": {},
+    "files": [
+      "["
+    ],
+    "expected": [
+      "["
+    ]
+  },
+  {
+    "pattern": "[*",
+    "options": {},
+    "files": [
+      "[abc"
+    ],
+    "expected": [
+      "[abc"
+    ]
+  },
+  {
+    "pattern": "[]]",
+    "options": {},
+    "files": [
+      "]"
+    ],
+    "expected": [
+      "]"
+    ]
+  },
+  {
+    "pattern": "[]-]",
+    "options": {},
+    "files": [
+      "]"
+    ],
+    "expected": [
+      "]"
+    ]
+  },
+  {
+    "pattern": "[a-z]",
+    "options": {},
+    "files": [
+      "p"
+    ],
+    "expected": [
+      "p"
+    ]
+  },
+  {
+    "pattern": "??**********?****?",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "abc"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "??**********?****c",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "abc"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "?************c****?****",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "abc"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "*c*?**",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "abc"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "a*****c*?**",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "abc"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "a********???*******",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "abc"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[]",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "a"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[abc",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "["
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "XYZ",
+    "options": {
+      "nocase": true,
+      "null": true
+    },
+    "files": [
+      "xYz",
+      "ABC",
+      "IjK"
+    ],
+    "expected": [
+      "xYz"
+    ]
+  },
+  {
+    "pattern": "ab*",
+    "options": {
+      "nocase": true,
+      "null": true
+    },
+    "files": [
+      "xYz",
+      "ABC",
+      "IjK"
+    ],
+    "expected": [
+      "ABC"
+    ]
+  },
+  {
+    "pattern": "[ia]?[ck]",
+    "options": {
+      "nocase": true,
+      "null": true
+    },
+    "files": [
+      "xYz",
+      "ABC",
+      "IjK"
+    ],
+    "expected": [
+      "ABC",
+      "IjK"
+    ]
+  },
+  {
+    "pattern": "{/*,*}",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "/asdf/asdf/asdf"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "{/?,*}",
+    "options": {
+      "null": true
+    },
+    "files": [
+      "/a",
+      "/b/b",
+      "/a/b/c",
+      "bb"
+    ],
+    "expected": [
+      "/a",
+      "bb"
+    ]
+  },
+  {
+    "pattern": "**",
+    "options": {},
+    "files": [
+      "a/b",
+      "a/.d",
+      ".a/.d"
+    ],
+    "expected": [
+      "a/b"
+    ]
+  },
+  {
+    "pattern": "a/*/b",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      "a/./b",
+      "a/../b",
+      "a/c/b",
+      "a/.d/b"
+    ],
+    "expected": [
+      "a/.d/b",
+      "a/c/b"
+    ]
+  },
+  {
+    "pattern": "a/.*/b",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      "a/./b",
+      "a/../b",
+      "a/c/b",
+      "a/.d/b"
+    ],
+    "expected": [
+      "a/.d/b"
+    ]
+  },
+  {
+    "pattern": "a/*/b",
+    "options": {
+      "dot": false
+    },
+    "files": [
+      "a/./b",
+      "a/../b",
+      "a/c/b",
+      "a/.d/b"
+    ],
+    "expected": [
+      "a/c/b"
+    ]
+  },
+  {
+    "pattern": "a/.*/b",
+    "options": {
+      "dot": false
+    },
+    "files": [
+      "a/./b",
+      "a/../b",
+      "a/c/b",
+      "a/.d/b"
+    ],
+    "expected": [
+      "a/.d/b"
+    ]
+  },
+  {
+    "pattern": "**",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a/.d",
+      "a/.d",
+      "a/b"
+    ],
+    "expected": [
+      ".a/.d",
+      "a/.d",
+      "a/b"
+    ]
+  },
+  {
+    "pattern": "*(a/b)",
+    "options": {
+      "nonull": true
+    },
+    "files": [
+      "a/b"
+    ],
+    "expected": [
+      "*(a/b)"
+    ]
+  },
+  {
+    "pattern": "*(a|{b),c)}",
+    "options": {},
+    "files": [
+      "a",
+      "ab",
+      "ac",
+      "ad"
+    ],
+    "expected": [
+      "a",
+      "ab",
+      "ac"
+    ]
+  },
+  {
+    "pattern": "[!a*",
+    "options": {},
+    "files": [
+      "[!ab",
+      "[ab"
+    ],
+    "expected": [
+      "[!ab"
+    ]
+  },
+  {
+    "pattern": "[#a*",
+    "options": {},
+    "files": [
+      "[#ab",
+      "[ab"
+    ],
+    "expected": [
+      "[#ab"
+    ]
+  },
+  {
+    "pattern": "+(a|*\\|c\\\\|d\\\\\\|e\\\\\\\\|f\\\\\\\\\\|g",
+    "options": {},
+    "files": [
+      "+(a|b\\|c\\\\|d\\\\|e\\\\\\\\|f\\\\\\\\|g",
+      "a",
+      "b\\c"
+    ],
+    "expected": [
+      "+(a|b\\|c\\\\|d\\\\|e\\\\\\\\|f\\\\\\\\|g"
+    ]
+  },
+  {
+    "pattern": "*(a|{b,c})",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "ab",
+      "ac",
+      "ad",
+      "bc",
+      "cb",
+      "bc,d",
+      "c,db",
+      "c,d",
+      "d)",
+      "(b|c",
+      "*(b|c",
+      "b|c",
+      "b|cc",
+      "cb|c",
+      "x(a|b|c)",
+      "x(a|c)",
+      "(a|b|c)",
+      "(a|c)"
+    ],
+    "expected": [
+      "a",
+      "ab",
+      "ac",
+      "b",
+      "c"
+    ]
+  },
+  {
+    "pattern": "{a,*(b|c,d)}",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "ab",
+      "ac",
+      "ad",
+      "bc",
+      "cb",
+      "bc,d",
+      "c,db",
+      "c,d",
+      "d)",
+      "(b|c",
+      "*(b|c",
+      "b|c",
+      "b|cc",
+      "cb|c",
+      "x(a|b|c)",
+      "x(a|c)",
+      "(a|b|c)",
+      "(a|c)"
+    ],
+    "expected": [
+      "(b|c",
+      "*(b|c",
+      "a",
+      "d)"
+    ]
+  },
+  {
+    "pattern": "{a,*(b|{c,d})}",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "ab",
+      "ac",
+      "ad",
+      "bc",
+      "cb",
+      "bc,d",
+      "c,db",
+      "c,d",
+      "d)",
+      "(b|c",
+      "*(b|c",
+      "b|c",
+      "b|cc",
+      "cb|c",
+      "x(a|b|c)",
+      "x(a|c)",
+      "(a|b|c)",
+      "(a|c)"
+    ],
+    "expected": [
+      "a",
+      "b",
+      "bc",
+      "c",
+      "cb",
+      "d"
+    ]
+  },
+  {
+    "pattern": "*(a|{b|c,c})",
+    "options": {},
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "ab",
+      "ac",
+      "ad",
+      "bc",
+      "cb",
+      "bc,d",
+      "c,db",
+      "c,d",
+      "d)",
+      "(b|c",
+      "*(b|c",
+      "b|c",
+      "b|cc",
+      "cb|c",
+      "x(a|b|c)",
+      "x(a|c)",
+      "(a|b|c)",
+      "(a|c)"
+    ],
+    "expected": [
+      "a",
+      "ab",
+      "ac",
+      "b",
+      "bc",
+      "c",
+      "cb"
+    ]
+  },
+  {
+    "pattern": "*(a|{b|c,c})",
+    "options": {
+      "noext": true
+    },
+    "files": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "ab",
+      "ac",
+      "ad",
+      "bc",
+      "cb",
+      "bc,d",
+      "c,db",
+      "c,d",
+      "d)",
+      "(b|c",
+      "*(b|c",
+      "b|c",
+      "b|cc",
+      "cb|c",
+      "x(a|b|c)",
+      "x(a|c)",
+      "(a|b|c)",
+      "(a|c)"
+    ],
+    "expected": [
+      "(a|b|c)",
+      "(a|c)",
+      "x(a|b|c)",
+      "x(a|c)"
+    ]
+  },
+  {
+    "pattern": "a?b",
+    "options": {
+      "matchBase": true
+    },
+    "files": [
+      "x/y/acb",
+      "acb/",
+      "acb/d/e",
+      "x/y/acb/d"
+    ],
+    "expected": [
+      "acb/",
+      "x/y/acb"
+    ]
+  },
+  {
+    "pattern": "#*",
+    "options": {
+      "nocomment": true
+    },
+    "files": [
+      "#a",
+      "#b",
+      "c#d"
+    ],
+    "expected": [
+      "#a",
+      "#b"
+    ]
+  },
+  {
+    "pattern": "!a*",
+    "options": {},
+    "files": [
+      "d",
+      "e",
+      "!ab",
+      "!abc",
+      "a!b",
+      "\\!a"
+    ],
+    "expected": [
+      "!ab",
+      "!abc",
+      "\\!a",
+      "d",
+      "e"
+    ]
+  },
+  {
+    "pattern": "!a*",
+    "options": {
+      "nonegate": true
+    },
+    "files": [
+      "d",
+      "e",
+      "!ab",
+      "!abc",
+      "a!b",
+      "\\!a"
+    ],
+    "expected": [
+      "!ab",
+      "!abc"
+    ]
+  },
+  {
+    "pattern": "!!a*",
+    "options": {},
+    "files": [
+      "d",
+      "e",
+      "!ab",
+      "!abc",
+      "a!b",
+      "\\!a"
+    ],
+    "expected": [
+      "a!b"
+    ]
+  },
+  {
+    "pattern": "!\\!a*",
+    "options": {},
+    "files": [
+      "d",
+      "e",
+      "!ab",
+      "!abc",
+      "a!b",
+      "\\!a"
+    ],
+    "expected": [
+      "\\!a",
+      "a!b",
+      "d",
+      "e"
+    ]
+  },
+  {
+    "pattern": "*.!(js)",
+    "options": {},
+    "files": [
+      "foo.js",
+      "foo.bar",
+      "foo.js.js",
+      "blar.js",
+      "foo.",
+      "boo.js.boo"
+    ],
+    "expected": [
+      "boo.js.boo",
+      "foo.",
+      "foo.bar",
+      "foo.js.js"
+    ]
+  },
+  {
+    "pattern": "**/.x/**",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b",
+      "a/b/.x/",
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e"
+    ]
+  },
+  {
+    "pattern": ".x/**/*",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": ".x/*/**",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": ".x/**/**/*",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": ".x/**/*/**",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": ".x/*/**/**",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": ".x/**/*",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/.x/",
+      ".x/.y",
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": ".x/*/**",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/.x/",
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": ".x/**/**/*",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/.x/",
+      ".x/.y",
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": ".x/**/*/**",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/.x/",
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": ".x/*/**/**",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      ".x/.x/",
+      ".x/a/",
+      ".x/a/b"
+    ]
+  },
+  {
+    "pattern": "**/.x/**",
+    "options": {
+      "noglobstar": true
+    },
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": [
+      "a/.x/b"
+    ]
+  },
+  {
+    "pattern": "[z-a]",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "a/[2015-03-10T00:23:08.647Z]/z",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "a/[2015-03-10T00:23:08.647Z\\]/z",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[a-0][a-Ā]",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "# ignore this",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[\\z-a]",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[\\b-a]",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[]+*]",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[z\\-a]",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[\\-\\]]",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[a-b-c]",
+    "options": {},
+    "files": [
+      "a/b/.x/c",
+      "a/b/.x/c/d",
+      "a/b/.x/c/d/e",
+      "a/b/.x",
+      "a/b/.x/",
+      "a/.x/b",
+      ".x",
+      ".x/",
+      ".x/a/",
+      ".x/a/b",
+      "a/.x/b/.x/c",
+      ".x/.x/",
+      ".x/.y"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "+(a)!(b)+(c)",
+    "options": {},
+    "files": [
+      "ac",
+      "abc",
+      "acd",
+      "acc",
+      "acd",
+      "adc",
+      "bbc",
+      "bac",
+      "bcc"
+    ],
+    "expected": [
+      "ac",
+      "acc",
+      "adc"
+    ]
+  },
+  {
+    "pattern": "å",
+    "options": {},
+    "files": [
+      "å"
+    ],
+    "expected": [
+      "å"
+    ]
+  },
+  {
+    "pattern": "å",
+    "options": {
+      "nocase": true
+    },
+    "files": [
+      "å"
+    ],
+    "expected": [
+      "å"
+    ]
+  },
+  {
+    "pattern": "Å",
+    "options": {
+      "nocase": true
+    },
+    "files": [
+      "å"
+    ],
+    "expected": [
+      "å"
+    ]
+  },
+  {
+    "pattern": "Å",
+    "options": {},
+    "files": [
+      "å"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "Å",
+    "options": {},
+    "files": [
+      "Å"
+    ],
+    "expected": [
+      "Å"
+    ]
+  },
+  {
+    "pattern": "å",
+    "options": {
+      "nocase": true
+    },
+    "files": [
+      "Å"
+    ],
+    "expected": [
+      "Å"
+    ]
+  },
+  {
+    "pattern": "Å",
+    "options": {
+      "nocase": true
+    },
+    "files": [
+      "Å"
+    ],
+    "expected": [
+      "Å"
+    ]
+  },
+  {
+    "pattern": "å",
+    "options": {},
+    "files": [
+      "Å"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": ".*",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      ".a",
+      ".a.js",
+      ".js"
+    ]
+  },
+  {
+    "pattern": "*",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ]
+  },
+  {
+    "pattern": "@(*|.*)",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ]
+  },
+  {
+    "pattern": "@(.*|*)",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ]
+  },
+  {
+    "pattern": "@(*|a)",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ]
+  },
+  {
+    "pattern": "@(.*)",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      ".a",
+      ".a.js",
+      ".js"
+    ]
+  },
+  {
+    "pattern": "@(.*)",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      ".a",
+      ".a.js",
+      ".js"
+    ]
+  },
+  {
+    "pattern": "@(js|.*)",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      ".a",
+      ".a.js",
+      ".js",
+      "js"
+    ]
+  },
+  {
+    "pattern": "@(.*|js)",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      ".a",
+      ".a.js",
+      ".js",
+      "js"
+    ]
+  },
+  {
+    "pattern": "!(.a|js)@(.*)",
+    "options": {
+      "nonegate": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js"
+    ],
+    "expected": [
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "@(a|a[(])b",
+    "options": {},
+    "files": [
+      "a(b",
+      "ab",
+      "a)b"
+    ],
+    "expected": [
+      "a(b",
+      "ab"
+    ]
+  },
+  {
+    "pattern": "@(a|a[)])b",
+    "options": {},
+    "files": [
+      "a(b",
+      "ab",
+      "a)b"
+    ],
+    "expected": [
+      "a)b",
+      "ab"
+    ]
+  },
+  {
+    "pattern": "?",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "a"
+    ]
+  },
+  {
+    "pattern": "??",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "JS",
+      "js"
+    ]
+  },
+  {
+    "pattern": "??",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".a",
+      "JS",
+      "js"
+    ]
+  },
+  {
+    "pattern": "??",
+    "options": {
+      "dot": true,
+      "nocase": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".a",
+      "JS",
+      "js"
+    ]
+  },
+  {
+    "pattern": "??",
+    "options": {
+      "nocase": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "JS",
+      "js"
+    ]
+  },
+  {
+    "pattern": "???",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "???",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".JS",
+      ".js"
+    ]
+  },
+  {
+    "pattern": "?.js",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "?js",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "?.js",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "?js",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".js"
+    ]
+  },
+  {
+    "pattern": "?.js",
+    "options": {
+      "nocase": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "a.JS",
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "?js",
+    "options": {
+      "dot": true,
+      "nocase": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".JS",
+      ".js"
+    ]
+  },
+  {
+    "pattern": "?.js",
+    "options": {
+      "dot": true,
+      "nocase": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "a.JS",
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "*.js",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "*js",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "a.js",
+      "js"
+    ]
+  },
+  {
+    "pattern": "*.js",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".a.js",
+      ".js",
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "*.js",
+    "options": {
+      "nocase": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "a.JS",
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "*.js",
+    "options": {
+      "dot": true,
+      "nocase": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".JS",
+      ".a.JS",
+      ".a.js",
+      ".js",
+      "a.JS",
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "*.*",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "a.JS",
+      "a.js"
+    ]
+  },
+  {
+    "pattern": "*.*",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".JS",
+      ".a",
+      ".a.JS",
+      ".a.js",
+      ".js",
+      "a.JS",
+      "a.js"
+    ]
+  },
+  {
+    "pattern": ".*",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".JS",
+      ".a",
+      ".a.JS",
+      ".a.js",
+      ".js"
+    ]
+  },
+  {
+    "pattern": "*",
+    "options": {},
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      "JS",
+      "a",
+      "a.JS",
+      "a.js",
+      "js"
+    ]
+  },
+  {
+    "pattern": "*",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      ".a",
+      ".a.js",
+      ".js",
+      "a",
+      "a.js",
+      "js",
+      "JS",
+      "a.JS",
+      ".a.JS",
+      ".JS",
+      ".",
+      ".."
+    ],
+    "expected": [
+      ".JS",
+      ".a",
+      ".a.JS",
+      ".a.js",
+      ".js",
+      "JS",
+      "a",
+      "a.JS",
+      "a.js",
+      "js"
+    ]
+  },
+  {
+    "pattern": "x/*/../a/b/c",
+    "options": {},
+    "files": [
+      "x/y/z/a/b/c",
+      "x/y/a/b/c",
+      "x/z/a/b/c",
+      "x/a/b/c",
+      "a/b/c"
+    ],
+    "expected": [
+      "x/a/b/c"
+    ]
+  },
+  {
+    "pattern": "x/z/../*/a/b/c",
+    "options": {},
+    "files": [
+      "x/y/z/a/b/c",
+      "x/y/a/b/c",
+      "x/z/a/b/c",
+      "x/a/b/c",
+      "a/b/c"
+    ],
+    "expected": [
+      "x/y/a/b/c",
+      "x/z/a/b/c"
+    ]
+  },
+  {
+    "pattern": "x/*/../../a/b/c",
+    "options": {},
+    "files": [
+      "x/y/z/a/b/c",
+      "x/y/a/b/c",
+      "x/z/a/b/c",
+      "x/a/b/c",
+      "a/b/c"
+    ],
+    "expected": [
+      "a/b/c"
+    ]
+  },
+  {
+    "pattern": "[[:alpha:]][[:alpha:]][[:alpha:]][[:alpha:]][[:alpha:]]",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "aeiou",
+      "fffff",
+      "åéîøü"
+    ]
+  },
+  {
+    "pattern": "[[:ascii:]][[:ascii:]][[:ascii:]][[:ascii:]][[:ascii:]]",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "0f7fa",
+      "99999",
+      "aeiou",
+      "fffff"
+    ]
+  },
+  {
+    "pattern": "[a-[:alpha:]*]",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[z-a]*",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": []
+  },
+  {
+    "pattern": "[z-af]*",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "fffff"
+    ]
+  },
+  {
+    "pattern": "[fz-a]*",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "fffff"
+    ]
+  },
+  {
+    "pattern": "[f-gz-a]*",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "fffff"
+    ]
+  },
+  {
+    "pattern": "[f-fz-a]*",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "fffff"
+    ]
+  },
+  {
+    "pattern": "[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "0f7fa",
+      "99999",
+      "fffff"
+    ]
+  },
+  {
+    "pattern": "[[:alnum:]][[:alnum:]][[:alnum:]][[:alnum:]][[:alnum:]]",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "0f7fa",
+      "99999",
+      "aeiou",
+      "fffff",
+      "åéîøü"
+    ]
+  },
+  {
+    "pattern": "[[:xdigit:]][[:xdigit:]]???",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "0f7fa",
+      "99999",
+      "aeiou",
+      "fffff"
+    ]
+  },
+  {
+    "pattern": "[[:graph:]]f*",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "0f7fa",
+      "fffff"
+    ]
+  },
+  {
+    "pattern": "[[:graph:][:digit:]]f*",
+    "options": {},
+    "files": [
+      "åéîøü",
+      "aeiou",
+      "fffff",
+      "0f7fa",
+      "99999"
+    ],
+    "expected": [
+      "0f7fa",
+      "fffff"
+    ]
+  },
+  {
+    "pattern": "*.y",
+    "options": {},
+    "files": [
+      "x.y",
+      "a.y",
+      "x.z",
+      "a.z",
+      "xy",
+      "ay",
+      "x",
+      "a",
+      ".y",
+      ".z"
+    ],
+    "expected": [
+      "a.y",
+      "x.y"
+    ]
+  },
+  {
+    "pattern": "*.z",
+    "options": {
+      "dot": true
+    },
+    "files": [
+      "x.y",
+      "a.y",
+      "x.z",
+      "a.z",
+      "xy",
+      "ay",
+      "x",
+      "a",
+      ".y",
+      ".z"
+    ],
+    "expected": [
+      ".z",
+      "a.z",
+      "x.z"
+    ]
+  },
+  {
+    "pattern": "*.Y",
+    "options": {
+      "nocase": true
+    },
+    "files": [
+      "x.y",
+      "a.y",
+      "x.z",
+      "a.z",
+      "xy",
+      "ay",
+      "x",
+      "a",
+      ".y",
+      ".z"
+    ],
+    "expected": [
+      "a.y",
+      "x.y"
+    ]
+  },
+  {
+    "pattern": "*.Z",
+    "options": {
+      "dot": true,
+      "nocase": true
+    },
+    "files": [
+      "x.y",
+      "a.y",
+      "x.z",
+      "a.z",
+      "xy",
+      "ay",
+      "x",
+      "a",
+      ".y",
+      ".z"
+    ],
+    "expected": [
+      ".z",
+      "a.z",
+      "x.z"
+    ]
+  },
+  {
+    "pattern": "+()",
+    "options": {},
+    "files": [
+      "x.y",
+      "a.y",
+      "x.z",
+      "a.z",
+      "xy",
+      "ay",
+      "x",
+      "a",
+      ".y",
+      ".z",
+      "+()"
+    ],
+    "expected": [
+      "+()"
+    ]
+  },
+  {
+    "pattern": "+()*(x|a)",
+    "options": {},
+    "files": [
+      "x.y",
+      "a.y",
+      "x.z",
+      "a.z",
+      "xy",
+      "ay",
+      "x",
+      "a",
+      ".y",
+      ".z",
+      "+()"
+    ],
+    "expected": [
+      "a",
+      "x"
+    ]
+  },
+  {
+    "pattern": "+(x|a[^)]y)",
+    "options": {},
+    "files": [
+      "x.y",
+      "a.y",
+      "x.z",
+      "a.z",
+      "xy",
+      "ay",
+      "x",
+      "a",
+      ".y",
+      ".z",
+      "+()"
+    ],
+    "expected": [
+      "a.y",
+      "x"
+    ]
+  },
+  {
+    "pattern": "!()y",
+    "options": {
+      "nonegate": true
+    },
+    "files": [
+      "x.y",
+      "a.y",
+      "x.z",
+      "a.z",
+      "xy",
+      "ay",
+      "x",
+      "a",
+      ".y",
+      ".z",
+      "+()"
+    ],
+    "expected": [
+      "a.y",
+      "ay",
+      "x.y",
+      "xy"
+    ]
+  },
+  {
+    "pattern": "!()y",
+    "options": {
+      "dot": true,
+      "nonegate": true
+    },
+    "files": [
+      "x.y",
+      "a.y",
+      "x.z",
+      "a.z",
+      "xy",
+      "ay",
+      "x",
+      "a",
+      ".y",
+      ".z",
+      "+()"
+    ],
+    "expected": [
+      ".y",
+      "a.y",
+      "ay",
+      "x.y",
+      "xy"
+    ]
+  },
+  {
+    "pattern": "?(x-!(y)|z)",
+    "options": {},
+    "files": [
+      "x-a",
+      "x-ab",
+      "x-z",
+      "a-z",
+      "zb"
+    ],
+    "expected": [
+      "x-a",
+      "x-ab",
+      "x-z"
+    ]
+  },
+  {
+    "pattern": "?(x-!(y)|z)b",
+    "options": {},
+    "files": [
+      "x-a",
+      "x-ab",
+      "x-z",
+      "a-z",
+      "zb"
+    ],
+    "expected": [
+      "x-ab",
+      "zb"
+    ]
+  },
+  {
+    "pattern": "*(?)",
+    "options": {},
+    "files": [
+      ".aa",
+      ".ab",
+      ".ba",
+      ".bb",
+      "a.a",
+      "a.b",
+      "b.a",
+      "b.b",
+      "aa",
+      "ab",
+      "ba",
+      "bb",
+      "aa.",
+      "ab.",
+      "ba.",
+      "bb."
+    ],
+    "expected": [
+      "a.a",
+      "a.b",
+      "aa",
+      "aa.",
+      "ab",
+      "ab.",
+      "b.a",
+      "b.b",
+      "ba",
+      "ba.",
+      "bb",
+      "bb."
+    ]
+  },
+  {
+    "pattern": "+(?)",
+    "options": {},
+    "files": [
+      ".aa",
+      ".ab",
+      ".ba",
+      ".bb",
+      "a.a",
+      "a.b",
+      "b.a",
+      "b.b",
+      "aa",
+      "ab",
+      "ba",
+      "bb",
+      "aa.",
+      "ab.",
+      "ba.",
+      "bb."
+    ],
+    "expected": [
+      "a.a",
+      "a.b",
+      "aa",
+      "aa.",
+      "ab",
+      "ab.",
+      "b.a",
+      "b.b",
+      "ba",
+      "ba.",
+      "bb",
+      "bb."
+    ]
+  },
+  {
+    "pattern": "+(a|?)",
+    "options": {},
+    "files": [
+      ".aa",
+      ".ab",
+      ".ba",
+      ".bb",
+      "a.a",
+      "a.b",
+      "b.a",
+      "b.b",
+      "aa",
+      "ab",
+      "ba",
+      "bb",
+      "aa.",
+      "ab.",
+      "ba.",
+      "bb."
+    ],
+    "expected": [
+      "a.a",
+      "a.b",
+      "aa",
+      "aa.",
+      "ab",
+      "ab.",
+      "b.a",
+      "b.b",
+      "ba",
+      "ba.",
+      "bb",
+      "bb."
+    ]
+  },
+  {
+    "pattern": "+(a|!(b))",
+    "options": {},
+    "files": [
+      ".aa",
+      ".ab",
+      ".ba",
+      ".bb",
+      "a.a",
+      "a.b",
+      "b.a",
+      "b.b",
+      "aa",
+      "ab",
+      "ba",
+      "bb",
+      "aa.",
+      "ab.",
+      "ba.",
+      "bb."
+    ],
+    "expected": [
+      "a.a",
+      "a.b",
+      "aa",
+      "aa.",
+      "ab",
+      "ab.",
+      "b.a",
+      "b.b",
+      "ba",
+      "ba.",
+      "bb",
+      "bb."
+    ]
+  },
+  {
+    "pattern": "+(.|a|!(b))",
+    "options": {},
+    "files": [
+      ".aa",
+      ".ab",
+      ".ba",
+      ".bb",
+      "a.a",
+      "a.b",
+      "b.a",
+      "b.b",
+      "aa",
+      "ab",
+      "ba",
+      "bb",
+      "aa.",
+      "ab.",
+      "ba.",
+      "bb."
+    ],
+    "expected": [
+      ".aa",
+      ".ab",
+      ".ba",
+      ".bb",
+      "a.a",
+      "a.b",
+      "aa",
+      "aa.",
+      "ab",
+      "ab.",
+      "b.a",
+      "b.b",
+      "ba",
+      "ba.",
+      "bb",
+      "bb."
+    ]
+  },
+  {
+    "pattern": "+(a|.)",
+    "options": {},
+    "files": [
+      ".aa",
+      ".ab",
+      ".ba",
+      ".bb",
+      "a.a",
+      "a.b",
+      "b.a",
+      "b.b",
+      "aa",
+      "ab",
+      "ba",
+      "bb",
+      "aa.",
+      "ab.",
+      "ba.",
+      "bb."
+    ],
+    "expected": [
+      ".aa",
+      "a.a",
+      "aa",
+      "aa."
+    ]
+  },
+  {
+    "pattern": "@(foo)*",
+    "options": {},
+    "files": [
+      "foo",
+      "fool",
+      "oof"
+    ],
+    "expected": [
+      "foo",
+      "fool"
+    ]
+  }
+]

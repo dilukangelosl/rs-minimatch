@@ -140,5 +140,9 @@ pub fn filter(pattern: &str, options: Options) -> impl Fn(&str) -> bool {
 
 pub fn match_list(list: &[&str], pattern: &str, options: Options) -> Vec<String> {
     let mm = Minimatch::new(pattern, options);
-    list.iter().filter(|f| mm.is_match(f)).map(|s| s.to_string()).collect()
+    let mut result: Vec<String> = list.iter().filter(|f| mm.is_match(f)).map(|s| s.to_string()).collect();
+    if mm.options.nonull && result.is_empty() {
+        result.push(pattern.to_string());
+    }
+    result
 }

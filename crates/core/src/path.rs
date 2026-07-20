@@ -107,9 +107,12 @@ fn match_at_uncached(pattern: &[Segment], file: &[String], pi: usize, fi: usize,
         return true;
     }
     if fi == file.len() {
-        // Ran out of file with pattern remaining: fine only in partial mode
-        // (matching a path prefix against a longer pattern).
-        return partial;
+        // Ran out of file with pattern remaining. Fine in partial mode
+        // (matching a path prefix against a longer pattern), or if
+        // everything left in the pattern is globstars - `**` (and `**/**`)
+        // can always collapse to zero segments, so e.g. plain "**" must
+        // still match a single-segment file like "a".
+        return partial || pattern[pi..].iter().all(|s| matches!(s, Segment::GlobStar));
     }
     if pi == pattern.len() {
         // Ran out of pattern with file left: only OK for one trailing empty
@@ -133,6 +136,17 @@ fn match_at_uncached(pattern: &[Segment], file: &[String], pi: usize, fi: usize,
         Segment::Pattern(nodes) => {
             let seg = &file[fi];
             if traversal_blocked(seg, pattern::is_only_dots(nodes)) {
+                return false;
+            }
+            // A trailing slash produces one empty final file segment (`a/b/`
+            // -> ["a","b",""]). A real pattern segment (e.g. `*`) must never
+            // consume that artifact itself - only the "pattern exhausted,
+            // one trailing empty segment left" rule below is allowed to
+            // absorb it, which requires this segment to have matched a real
+            // preceding one first. `a/*` matches `a/b/` (star matches "b",
+            // then that rule covers the trailing ""), but not `a/` (star
+            // would have to consume the "" directly).
+            if !nodes.is_empty() && seg.is_empty() && fi == file.len() - 1 {
                 return false;
             }
             let dot_allowed = opts.dot || pattern::starts_with_literal_dot(nodes);
