@@ -3,7 +3,7 @@
 //! running bash - see test/generate.sh in that package) plus its targeted
 //! unit test cases (sequences, padding, nesting, ordering).
 
-use rs_minimatch_core::brace_expand;
+use rs_minimatch_core::brace_expand_raw as brace_expand;
 use serde::Deserialize;
 
 fn fixture<T: for<'de> Deserialize<'de>>(name: &str) -> Vec<T> {

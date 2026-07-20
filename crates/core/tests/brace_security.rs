@@ -2,7 +2,7 @@
 //! implementation this crate ports (brace-expansion's own security
 //! advisories), not hypothetical ones. Each test names the real advisory.
 
-use rs_minimatch_core::brace_expand;
+use rs_minimatch_core::brace_expand_raw as brace_expand;
 use std::time::Instant;
 
 /// CVE-2026-14257: `expand()` bounded the *count* of results but not their
