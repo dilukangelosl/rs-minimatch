@@ -35,11 +35,13 @@ the real `minimatch` package on the same machine, same data:
 | Operation | Speedup |
 |---|---|
 | Compile 1,000 patterns | **3.3x faster** |
-| Match 10,000 paths | **1.4x faster** |
-| Filter 10,000 paths | **27x slower** |
+| Match 10,000 paths | **2.1x faster** |
+| Filter 10,000 paths | **6.4x slower** |
 
-That last row is real, not a typo — see [Benchmarks](#benchmarks) below
-for why, and what it'd take to close it.
+That last row is real, not a typo. It used to be 27x slower - see
+[Benchmarks](#benchmarks) below for the root cause that was found and
+fixed (along with a real exponential-blowup bug in `+()`/`*()`
+extglobs, found the same way), and what's still left on the table.
 
 ## Also available as
 
@@ -177,10 +179,10 @@ samples each):
 
 | Benchmark | Median time |
 |---|---|
-| Match 10,000 random paths against a pattern | 20.5 ms |
-| Compile 1,000 patterns | 1.8 ms |
-| Match against 11 chained globstars over 30 path segments | 11.8 µs |
-| Filter 10,000 paths | 65.7 ms |
+| Match 10,000 random paths against a pattern | 13.6 ms |
+| Compile 1,000 patterns | 1.7 ms |
+| Match against 11 chained globstars over 30 path segments | 4.7 µs |
+| Filter 10,000 paths | 14.1 ms |
 
 **Node.js: `rs-minimatch` (via NAPI) vs. the real `minimatch` package**
 (`benchmarks/compare.js`, same generated data for both, best-of-5,
@@ -188,12 +190,12 @@ identical process):
 
 | Benchmark | rs-minimatch | minimatch | speedup |
 |---|---|---|---|
-| Match 10,000 paths | 22.36 ms | 31.04 ms | **1.4x** |
-| Compile 1,000 patterns | 2.22 ms | 7.22 ms | **3.3x** |
-| 11 chained globstars / 30 segments (the PRD's ReDoS example) | 0.01 ms | 0.00 ms | **0.3x** |
-| Filter 10,000 paths | 65.50 ms | 2.44 ms | **0.04x (27x slower)** |
+| Match 10,000 paths | 15.48 ms | 31.89 ms | **2.1x** |
+| Compile 1,000 patterns | 2.12 ms | 7.29 ms | **3.4x** |
+| 11 chained globstars / 30 segments (the PRD's ReDoS example) | 0.00 ms | 0.00 ms | **0.7x** |
+| Filter 10,000 paths | 15.11 ms | 2.35 ms | **0.16x (6.4x slower)** |
 
-Two things worth being direct about instead of only reporting the
+Three things worth being direct about instead of only reporting the
 numbers that look good:
 
 **The ReDoS attack shape isn't actually slow on real minimatch anymore.**
@@ -208,21 +210,51 @@ because a depth cap can produce false negatives on legitimately deep
 can't — but "we fixed a live vulnerability" would be a false claim, and
 isn't the one being made here.
 
-**Filtering 10,000 paths is 27x slower, and it's a real, traced cause,
-not FFI overhead.** The pure-Rust criterion benchmark above (no FFI
-involved at all) shows the identical ~65ms, so the NAPI boundary isn't
-the story here. The actual cause: every call into the matcher allocates
-a fresh `HashMap` for its memoization table, even for a plain segment
-(a bare `*` or a literal) that doesn't need dynamic programming at all —
-a simple linear scan would do. `minimatch` compiles the whole pattern to
-one regex once and lets a heavily-optimized native regex engine test
-each path in a single call; this crate re-walks its own DP machinery
-per path with real per-call allocation cost. The worst-case safety
-property holds regardless; everyday-pattern throughput currently does
-not win, and that's worth knowing before reaching for this crate to
-speed up a hot filtering path. The concrete next step, if this gets
-pushed further, is a fast path that skips the memo table entirely for
-segments with no extglob nodes — not a rewrite of the safety model.
+**Filtering 10,000 paths used to be 27x slower - now it's 6.4x, and the
+fix is a real, traced one, not a guess.** The cause (confirmed by the
+pure-Rust criterion benchmark, no FFI involved, showing the same
+proportional gap): every call into the matcher was allocating a fresh
+`HashMap` for its memoization table, even for a plain segment (a bare
+`*` or a literal) that doesn't need one at all. A literal-only or
+single-`*` segment (the overwhelming majority of real-world glob
+segments, and exactly the shape `**/*.ts` breaks down into) can't blow
+up without memoization in the first place - the exponential case needs
+either multiple `*`s or a quantified extglob re-trying the same span,
+not just one - so those shapes now skip the table entirely and
+allocate nothing; everything else still gets the same flat, pre-sized
+`Vec` (no hashing, no incremental-growth reallocation, unlike the old
+`HashMap`) it did before. Same recursive algorithm and the same
+polynomial-time guarantee either way, checked against minimatch's own
+fixture suite, a 20,000-case randomized fuzz run, and a set of
+adversarial-shape timing tests, all with zero new mismatches. Cut
+`filter_10k_paths` by 79% (65.7ms → 14.1ms) and `match_10k_paths` by
+34% along with it. What's left of the gap is architectural, not a bug:
+`minimatch` compiles the whole pattern to one native regex once and
+lets a heavily-optimized engine test each path in a single call; this
+crate still re-walks its own matcher per path, even without the
+allocation overhead. A genuinely faster fix would mean compiling simple
+segments to a small direct-dispatch matcher instead of interpreting
+their AST on every call - a real project, not a one-line change, so
+it's left as a documented next step rather than done here.
+
+**A real exponential-blowup bug in `+()`/`*()` extglobs was found and
+fixed along the way, unrelated to the allocation work above.**
+`+(a|aa)` (or `*(a|aa)`) matched against a long run of `a`s took **5.2
+seconds at just 35 characters** before this fix - a genuine ReDoS, not
+a benchmark artifact, and exactly the kind of catastrophic blowup this
+crate's whole "memoized DP, not backtracking" pitch is supposed to rule
+out by construction. Root cause: the repetition loop behind `+()`/`*()`
+recurses on itself directly instead of going through the shared
+`matches_at` memo, so it never got cached - the textbook unmemoized
+word-break blowup, where the same "can the rest of the string be
+covered by more repetitions from here" question gets asked (and fully
+re-solved) once for every different way of splitting the consumed text
+into repetitions. Fixed by giving that recursion its own memo table,
+keyed the same way as the main one. Now: 200 characters in 1.2ms, 400
+in 5.7ms - clean polynomial scaling, not exponential. See
+[`pattern_security.rs`](crates/core/tests/pattern_security.rs) for the
+regression tests, including the original failing shape at increasing
+lengths.
 
 Reproduce:
 

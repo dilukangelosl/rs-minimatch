@@ -9,8 +9,6 @@
 //! (a heuristic mitigation) because the algorithm has no unbounded case to
 //! cap.
 
-use std::collections::HashMap;
-
 use crate::options::Options;
 use crate::pattern::{self, Node};
 
@@ -77,11 +75,54 @@ pub fn basename(file_segments: &[String]) -> &str {
 }
 
 pub fn match_segments(pattern: &[Segment], file: &[String], opts: &Options, partial: bool) -> bool {
-    let mut memo = HashMap::new();
+    let mut memo = Memo::for_shape(pattern, pattern.len(), file.len());
     match_at(pattern, file, 0, 0, opts, partial, &mut memo)
 }
 
-type Memo = HashMap<(usize, usize), bool>;
+/// A single `**` can't blow up without memoization either (see the same
+/// argument in `matcher::needs_memo_table`) - it's *chained* globstars
+/// re-trying the same file suffix from different pattern positions that
+/// need it. Most real patterns (`*.ts`, `src/*.js`, or even one `**`) never
+/// hit that case at all, so they skip the table entirely.
+fn needs_memo_table(pattern: &[Segment]) -> bool {
+    pattern.iter().filter(|s| matches!(s, Segment::GlobStar)).count() > 1
+}
+
+/// Memoization table keyed on (pattern segment index, file segment index).
+/// `Table` is a flat `Vec` sized once up front instead of a `HashMap` - same
+/// recursive algorithm and the same polynomial-time guarantee, just without
+/// per-lookup hashing and incremental-growth reallocation. `Skip` allocates
+/// nothing at all, for the shapes `needs_memo_table` has proven don't need
+/// caching. This gets built fresh on every `match_segments` call, so this
+/// overhead was showing up directly in bulk filtering throughput.
+enum Memo {
+    Skip,
+    Table { cells: Vec<Option<bool>>, cols: usize },
+}
+
+impl Memo {
+    fn for_shape(pattern: &[Segment], rows: usize, cols: usize) -> Self {
+        if needs_memo_table(pattern) {
+            let cols = cols + 1;
+            Memo::Table { cells: vec![None; (rows + 1) * cols], cols }
+        } else {
+            Memo::Skip
+        }
+    }
+
+    fn get(&self, pi: usize, fi: usize) -> Option<bool> {
+        match self {
+            Memo::Skip => None,
+            Memo::Table { cells, cols } => cells[pi * cols + fi],
+        }
+    }
+
+    fn set(&mut self, pi: usize, fi: usize, value: bool) {
+        if let Memo::Table { cells, cols } = self {
+            cells[pi * *cols + fi] = Some(value);
+        }
+    }
+}
 
 /// `.` and `..` are never matched by magic, even under `dot: true` - only a
 /// pattern that's the literal string "." or ".." matches them. The general
@@ -94,11 +135,11 @@ fn traversal_blocked(seg: &str, pattern_is_only_dots: bool) -> bool {
 }
 
 fn match_at(pattern: &[Segment], file: &[String], pi: usize, fi: usize, opts: &Options, partial: bool, memo: &mut Memo) -> bool {
-    if let Some(&hit) = memo.get(&(pi, fi)) {
+    if let Some(hit) = memo.get(pi, fi) {
         return hit;
     }
     let result = match_at_uncached(pattern, file, pi, fi, opts, partial, memo);
-    memo.insert((pi, fi), result);
+    memo.set(pi, fi, result);
     result
 }
 
